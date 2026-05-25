@@ -1,0 +1,2119 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Il Sistema Carburante Aeronautico</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #0A1628;
+    --sky-mid: #0D2144;
+    --sky-light: #112952;
+    --accent: #00B4FF;
+    --accent2: #00E5A0;
+    --accent3: #FF6B35;
+    --accent4: #FFD23F;
+    --text: #E8F4FD;
+    --text-muted: #7BA8C9;
+    --card-bg: rgba(255,255,255,0.04);
+    --card-border: rgba(0,180,255,0.18);
+    --glass: rgba(10, 22, 40, 0.85);
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--sky);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 400;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* STARFIELD BG */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0,100,200,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0,180,255,0.08) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 64px 24px 48px;
+    overflow: hidden;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 4px 16px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  .hero h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2.2rem, 6vw, 5rem);
+    line-height: 1.0;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+    animation: fadeDown 0.7s ease 0.1s both;
+  }
+
+  .hero h1 span { color: var(--accent); }
+
+  .hero-sub {
+    margin-top: 16px;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    color: var(--text-muted);
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    animation: fadeDown 0.8s ease 0.2s both;
+  }
+
+  /* PLANE SVG HERO */
+  .hero-plane {
+    margin: 32px auto 0;
+    max-width: 640px;
+    animation: fadeDown 0.9s ease 0.3s both;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 0 24px 48px;
+    position: relative;
+    z-index: 2;
+    animation: fadeUp 0.9s ease 0.4s both;
+  }
+
+  .stat-pill {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 100px;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    backdrop-filter: blur(12px);
+  }
+
+  .stat-pill .val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-pill .lbl {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* SECTION HEADER */
+  .section-header {
+    text-align: center;
+    padding: 0 24px 32px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .section-header h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+  }
+
+  .section-header h2 span { color: var(--text); }
+
+  /* CARDS GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 52px;
+    padding: 0 24px 64px;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  .card.visible {
+    animation: revealCard 0.5s ease forwards;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,180,255,0.06) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(0,180,255,0.15);
+    border-color: var(--accent);
+  }
+
+  .card:hover::before { opacity: 1; }
+
+  .card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    font-size: 1.5rem;
+  }
+
+  .card h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .card p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .card-arrow {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--card-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s, border-color 0.3s, transform 0.3s;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .card:hover .card-arrow {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--sky);
+    transform: rotate(45deg);
+  }
+
+  .card-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 100px;
+    margin-bottom: 12px;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 12, 25, 0.92);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(6px);
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--sky-mid);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    max-width: 780px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 40px;
+    position: relative;
+    transform: scale(0.92) translateY(20px);
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) transparent;
+  }
+
+  .modal-overlay.open .modal {
+    transform: scale(1) translateY(0);
+  }
+
+  .modal::-webkit-scrollbar { width: 4px; }
+  .modal::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .modal-close:hover { background: rgba(255,60,60,0.2); color: #ff6b6b; border-color: #ff6b6b; }
+
+  .modal-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(0,180,255,0.15);
+  }
+
+  .modal-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+  }
+
+  .modal-header h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.1;
+  }
+
+  .modal-header p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .modal-body h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin: 24px 0 10px;
+  }
+
+  .modal-body h3:first-child { margin-top: 0; }
+
+  .modal-body p {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: rgba(232,244,253,0.85);
+    margin-bottom: 12px;
+  }
+
+  .modal-body ul {
+    list-style: none;
+    margin: 0 0 16px;
+  }
+
+  .modal-body ul li {
+    font-size: 0.88rem;
+    color: rgba(232,244,253,0.8);
+    padding: 5px 0 5px 20px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .modal-body ul li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 0.75rem;
+  }
+
+  .formula-box {
+    background: rgba(0,180,255,0.07);
+    border: 1px solid rgba(0,180,255,0.25);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 14px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    color: var(--accent2);
+    line-height: 1.7;
+  }
+
+  .example-box {
+    background: rgba(0,229,160,0.06);
+    border: 1px solid rgba(0,229,160,0.25);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 14px 0;
+  }
+
+  .example-box .ex-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 6px;
+  }
+
+  .example-box p {
+    font-size: 0.87rem;
+    color: rgba(232,244,253,0.85);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 14px 0;
+  }
+
+  .info-cell {
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    padding: 12px 16px;
+  }
+
+  .info-cell .ic-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .info-cell .ic-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .svg-diagram {
+    width: 100%;
+    margin: 16px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(0,0,0,0.2);
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 32px 24px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    position: relative;
+    z-index: 2;
+    border-top: 1px solid rgba(0,180,255,0.1);
+  }
+
+  /* SCROLL REVEAL */
+  @keyframes revealCard {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* FLOW ANIMATION */
+  .flow-dot {
+    animation: flowMove 3s linear infinite;
+  }
+
+  @keyframes flowMove {
+    0% { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: -200; }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .modal { padding: 24px 20px; }
+    .info-grid { grid-template-columns: 1fr; }
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  /* COLOR VARIANTS */
+  .c-blue { background: rgba(0,180,255,0.12); color: var(--accent); }
+  .c-green { background: rgba(0,229,160,0.12); color: var(--accent2); }
+  .c-orange { background: rgba(255,107,53,0.12); color: var(--accent3); }
+  .c-yellow { background: rgba(255,210,63,0.12); color: var(--accent4); }
+
+  .t-blue { color: var(--accent); }
+  .t-green { color: var(--accent2); }
+  .t-orange { color: var(--accent3); }
+  .t-yellow { color: var(--accent4); }
+
+  .b-blue { border-color: var(--accent) !important; }
+  .b-green { border-color: var(--accent2) !important; }
+  .b-orange { border-color: var(--accent3) !important; }
+  .b-yellow { border-color: var(--accent4) !important; }
+
+  /* HIGHLIGHT */
+  .highlight {
+    background: rgba(0,180,255,0.1);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: rgba(232,244,253,0.9);
+  }
+
+  /* TABLE */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.85rem;
+  }
+
+  .data-table th {
+    background: rgba(0,180,255,0.1);
+    color: var(--accent);
+    padding: 10px 14px;
+    text-align: left;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .data-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: rgba(232,244,253,0.8);
+  }
+
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(255,255,255,0.03); }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-badge">Guida Tecnica Aeronautica</div>
+  <h1>Il Sistema<br><span>Carburante</span> Aeronautico</h1>
+  <p class="hero-sub">Cuore pulsante del volo — Anatomia, funzionamento, sicurezza e innovazione</p>
+
+  <!-- PLANE SVG -->
+  <div class="hero-plane">
+    <svg viewBox="0 0 640 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;">
+      <defs>
+        <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#1a3a6e"/>
+          <stop offset="100%" style="stop-color:#0d2144"/>
+        </linearGradient>
+        <linearGradient id="wingGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#1e4a80"/>
+          <stop offset="100%" style="stop-color:#0a2050"/>
+        </linearGradient>
+        <linearGradient id="fuelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#00B4FF;stop-opacity:0.7"/>
+          <stop offset="100%" style="stop-color:#0066aa;stop-opacity:0.5"/>
+        </linearGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- Wings -->
+      <ellipse cx="310" cy="155" rx="220" ry="18" fill="url(#wingGrad)" opacity="0.9"/>
+      <ellipse cx="310" cy="155" rx="200" ry="10" fill="url(#fuelGrad)" opacity="0.4"/>
+
+      <!-- Tail -->
+      <polygon points="110,130 130,130 140,80 120,80" fill="url(#bodyGrad)" stroke="#1e4a80" stroke-width="1"/>
+      <polygon points="115,150 130,130 135,130 120,150" fill="url(#bodyGrad)" stroke="#1e4a80" stroke-width="1"/>
+
+      <!-- Fuselage -->
+      <ellipse cx="310" cy="140" rx="200" ry="28" fill="url(#bodyGrad)" stroke="#1e4a80" stroke-width="1.5"/>
+
+      <!-- Windows -->
+      <g fill="#00B4FF" opacity="0.6">
+        <rect x="190" y="130" width="12" height="8" rx="2"/>
+        <rect x="210" y="130" width="12" height="8" rx="2"/>
+        <rect x="230" y="130" width="12" height="8" rx="2"/>
+        <rect x="250" y="130" width="12" height="8" rx="2"/>
+        <rect x="270" y="130" width="12" height="8" rx="2"/>
+        <rect x="290" y="130" width="12" height="8" rx="2"/>
+        <rect x="310" y="130" width="12" height="8" rx="2"/>
+        <rect x="330" y="130" width="12" height="8" rx="2"/>
+        <rect x="350" y="130" width="12" height="8" rx="2"/>
+        <rect x="370" y="130" width="12" height="8" rx="2"/>
+      </g>
+
+      <!-- Nose -->
+      <ellipse cx="500" cy="140" rx="12" ry="16" fill="#1e4a80"/>
+
+      <!-- Engine left -->
+      <rect x="220" y="164" width="60" height="18" rx="9" fill="#0d1e3a" stroke="#00B4FF" stroke-width="1" opacity="0.9"/>
+      <!-- Engine right -->
+      <rect x="330" y="164" width="60" height="18" rx="9" fill="#0d1e3a" stroke="#00B4FF" stroke-width="1" opacity="0.9"/>
+
+      <!-- Fuel lines -->
+      <path d="M310,155 L250,172 M310,155 L360,172" stroke="#00B4FF" stroke-width="2" stroke-dasharray="6,3" opacity="0.7">
+        <animate attributeName="stroke-dashoffset" from="0" to="-18" dur="1.5s" repeatCount="indefinite"/>
+      </path>
+
+      <!-- Fuel label -->
+      <rect x="250" y="155" rx="8" ry="8" width="120" height="22" fill="rgba(0,180,255,0.12)" stroke="rgba(0,180,255,0.4)" stroke-width="1"/>
+      <text x="310" y="170" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="11" font-weight="700" letter-spacing="1">~183.000 L (B747)</text>
+
+      <!-- Altitude label -->
+      <text x="320" y="30" text-anchor="middle" fill="rgba(123,168,201,0.6)" font-family="Barlow Condensed" font-size="12" letter-spacing="2">FL350 — −47°C</text>
+    </svg>
+  </div>
+</header>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-pill">
+    <div class="val">183.000 L</div>
+    <div class="lbl">Max Boeing 747</div>
+  </div>
+  <div class="stat-pill">
+    <div class="val">−47°C</div>
+    <div class="lbl">Congelamento Jet A-1</div>
+  </div>
+  <div class="stat-pill">
+    <div class="val">80%</div>
+    <div class="lbl">Riduzione CO₂ SAF</div>
+  </div>
+  <div class="stat-pill">
+    <div class="val">2,5–3 L</div>
+    <div class="lbl">per 100 km/pax</div>
+  </div>
+</div>
+
+<!-- SECTION 1 -->
+<div class="section-header">
+  <h2>ANATOMIA E <span>COMPONENTI PRINCIPALI</span></h2>
+</div>
+
+<div class="grid" id="grid1">
+  <!-- Card 1: Serbatoi -->
+  <div class="card b-blue" data-modal="serbatoi" style="animation-delay:0.0s">
+    <span class="card-tag c-blue">Struttura</span>
+    <div class="card-icon c-blue">🛢</div>
+    <h3>Serbatoi Integrali<br>(Wet Wing)</h3>
+    <p>La struttura alare stessa funge da contenitore — peso ottimizzato, capacità massimizzata.</p>
+    <div class="card-arrow">→</div>
+  </div>
+
+  <!-- Card 2: Pompe -->
+  <div class="card b-green" data-modal="pompe" style="animation-delay:0.1s">
+    <span class="card-tag c-green">Propulsione</span>
+    <div class="card-icon c-green">⚙️</div>
+    <h3>Pompe Carburante</h3>
+    <p>Meccaniche, elettriche e Booster Pump per garantire pressione costante in ogni fase del volo.</p>
+    <div class="card-arrow">→</div>
+  </div>
+
+  <!-- Card 3: Filtri -->
+  <div class="card b-orange" data-modal="filtri" style="animation-delay:0.2s">
+    <span class="card-tag c-orange">Sicurezza</span>
+    <div class="card-icon c-orange">🔬</div>
+    <h3>Filtraggio e Separazione Acqua</h3>
+    <p>Bloccano polvere e acqua che a quote elevate potrebbero congelare o corrodere i componenti.</p>
+    <div class="card-arrow">→</div>
+  </div>
+
+  <!-- Card 4: Valvole -->
+  <div class="card b-yellow" data-modal="valvole" style="animation-delay:0.3s">
+    <span class="card-tag c-yellow">Controllo</span>
+    <div class="card-icon c-yellow">🔧</div>
+    <h3>Valvole di Controllo</h3>
+    <p>Selector, Shut-off, Check e Crossfeed: il sistema nervoso del flusso carburante.</p>
+    <div class="card-arrow">→</div>
+  </div>
+
+  <!-- Card 5: Tubazioni -->
+  <div class="card b-blue" data-modal="tubazioni" style="animation-delay:0.4s">
+    <span class="card-tag c-blue">Circuito</span>
+    <div class="card-icon c-blue">🔩</div>
+    <h3>Tubazioni e Linee</h3>
+    <p>Alluminio, acciaio inox, titanio: resistenza a vibrazione, pressione e temperatura estrema.</p>
+    <div class="card-arrow">→</div>
+  </div>
+
+  <!-- Card 6: Ventilazione -->
+  <div class="card b-green" data-modal="ventilazione" style="animation-delay:0.5s">
+    <span class="card-tag c-green">Pressurizzazione</span>
+    <div class="card-icon c-green">💨</div>
+    <h3>Sistema di Ventilazione</h3>
+    <p>Le vent lines equilibrano la pressione nei serbatoi prevenendo deformazioni strutturali.</p>
+    <div class="card-arrow">→</div>
+  </div>
+
+  <!-- Card 7: Sensori -->
+  <div class="card b-orange" data-modal="sensori" style="animation-delay:0.6s">
+    <span class="card-tag c-orange">Avionica</span>
+    <div class="card-icon c-orange">📡</div>
+    <h3>Sensori e Indicatori</h3>
+    <p>ECAM (Airbus), EICAS (Boeing): monitoraggio digitale di quantità, pressione e flusso.</p>
+    <div class="card-arrow">→</div>
+  </div>
+</div>
+
+<!-- SECTION 2 -->
+<div class="section-header">
+  <h2>FUNZIONAMENTO E <span>ALIMENTAZIONE</span></h2>
+</div>
+
+<div class="grid" id="grid2">
+  <!-- Card 8: Gravity Feed -->
+  <div class="card b-blue" data-modal="gravity" style="animation-delay:0s">
+    <span class="card-tag c-blue">Tipo Alimentazione</span>
+    <div class="card-icon c-blue">🔽</div>
+    <h3>Gravity Feed</h3>
+    <p>Sistemi semplici per aerei ad ala alta: il carburante scende per gravità, senza pompe.</p>
+    <div class="card-arrow">→</div>
+  </div>
+
+  <!-- Card 9: Pump Feed -->
+  <div class="card b-green" data-modal="pump" style="animation-delay:0.1s">
+    <span class="card-tag c-green">Alta Prestazione</span>
+    <div class="card-icon c-green">🚀</div>
+    <h3>Pump Feed</h3>
+    <p>Sistema a pompe per jet e velivoli ad ala bassa: alta pressione, funzionamento ad ogni quota.</p>
+    <div class="card-arrow">→</div>
+  </div>
+
+  <!-- Card 10: Crossfeed -->
+  <div class="card b-orange" data-modal="crossfeed" style="animation-delay:0.2s">
+    <span class="card-tag c-orange">Ridondanza</span>
+    <div class="card-icon c-orange">↔️</div>
+    <h3>Crossfeed e Baricentro</h3>
+    <p>Alimentazione incrociata tra serbatoi per emergenze e gestione del centro di gravità.</p>
+    <div class="card-arrow">→</div>
+  </div>
+</div>
+
+<!-- SECTION 3 -->
+<div class="section-header">
+  <h2>SICUREZZA, <span>PRESTAZIONI E FUTURO</span></h2>
+</div>
+
+<div class="grid" id="grid3">
+  <!-- Card 11: Inertizzazione -->
+  <div class="card b-blue" data-modal="inertizzazione" style="animation-delay:0s">
+    <span class="card-tag c-blue">Sicurezza</span>
+    <div class="card-icon c-blue">🛡️</div>
+    <h3>Inertizzazione con Azoto</h3>
+    <p>L'azoto sostituisce l'ossigeno nei serbatoi, eliminando il rischio di esplosione dei vapori.</p>
+    <div class="card-arrow">→</div>
+  </div>
+
+  <!-- Card 12: Jet A-1 -->
+  <div class="card b-yellow" data-modal="jeta1" style="animation-delay:0.1s">
+    <span class="card-tag c-yellow">Carburante</span>
+    <div class="card-icon c-yellow">🌡️</div>
+    <h3>Jet A-1: Prestazioni Estreme</h3>
+    <p>Rimane liquido fino a −47°C: il carburante standard per l'aviazione commerciale mondiale.</p>
+    <div class="card-arrow">→</div>
+  </div>
+
+  <!-- Card 13: SAF/Idrogeno -->
+  <div class="card b-green" data-modal="saf" style="animation-delay:0.2s">
+    <span class="card-tag c-green">Innovazione</span>
+    <div class="card-icon c-green">🌿</div>
+    <h3>SAF e Idrogeno</h3>
+    <p>Fino all'80% di riduzione CO₂: i carburanti sostenibili e l'idrogeno per l'aviazione del futuro.</p>
+    <div class="card-arrow">→</div>
+  </div>
+
+  <!-- Card 14: Rischi -->
+  <div class="card b-orange" data-modal="rischi" style="animation-delay:0.3s">
+    <span class="card-tag c-orange">Criticità</span>
+    <div class="card-icon c-orange">⚠️</div>
+    <h3>Rischi e Anomalie</h3>
+    <p>Vapour lock, cavitazione, contaminazione: le minacce al sistema e i sistemi di protezione.</p>
+    <div class="card-arrow">→</div>
+  </div>
+</div>
+
+<!-- INTERACTIVE FUEL FLOW ANIMATION -->
+<div class="section-header" style="margin-top:32px;">
+  <h2>FLUSSO CARBURANTE <span>INTERATTIVO</span></h2>
+</div>
+
+<div id="fuel-flow-section" style="max-width:900px;margin:0 auto 64px;padding:0 24px;position:relative;z-index:2;">
+  <!-- Controls -->
+  <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
+    <button id="btn-normal" class="flow-btn active-btn" onclick="setMode('normal')">✈ Volo Normale</button>
+    <button id="btn-crossfeed" class="flow-btn" onclick="setMode('crossfeed')">↔ Crossfeed</button>
+    <button id="btn-emergency" class="flow-btn" onclick="setMode('emergency')">⚠ Emergenza Motore</button>
+    <button id="btn-refuel" class="flow-btn" onclick="setMode('refuel')">⛽ Rifornimento</button>
+  </div>
+
+  <!-- Status bar -->
+  <div id="flow-status" style="text-align:center;margin-bottom:20px;font-family:'Barlow Condensed',sans-serif;font-size:1rem;letter-spacing:2px;color:var(--accent);text-transform:uppercase;min-height:24px;transition:color 0.4s;">
+    Modalità: Volo Normale — doppia alimentazione da serbatoi interni
+  </div>
+
+  <!-- SVG Diagram -->
+  <div style="background:rgba(0,0,0,0.25);border:1px solid var(--card-border);border-radius:20px;padding:20px;backdrop-filter:blur(10px);">
+    <svg id="fuelSVG" viewBox="0 0 860 440" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">
+      <defs>
+        <!-- Fuel gradients -->
+        <linearGradient id="tankGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#1e4a80"/>
+          <stop offset="100%" style="stop-color:#0a1e40"/>
+        </linearGradient>
+        <linearGradient id="fuelFill" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#00B4FF;stop-opacity:0.8"/>
+          <stop offset="100%" style="stop-color:#005588;stop-opacity:0.9"/>
+        </linearGradient>
+        <linearGradient id="fuelFillGreen" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#00E5A0;stop-opacity:0.8"/>
+          <stop offset="100%" style="stop-color:#006644;stop-opacity:0.9"/>
+        </linearGradient>
+        <linearGradient id="engineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#0d1e3a"/>
+          <stop offset="100%" style="stop-color:#1a3060"/>
+        </linearGradient>
+        <!-- Glow filters -->
+        <filter id="blueGlow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="4" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="greenGlow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="redGlow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="4" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <!-- Clip paths for tanks -->
+        <clipPath id="clipTankL-outer"><rect x="42" y="102" width="120" height="76" rx="8"/></clipPath>
+        <clipPath id="clipTankL-inner"><rect x="192" y="112" width="90" height="56" rx="6"/></clipPath>
+        <clipPath id="clipTankC"><rect x="355" y="107" width="150" height="66" rx="8"/></clipPath>
+        <clipPath id="clipTankR-inner"><rect x="578" y="112" width="90" height="56" rx="6"/></clipPath>
+        <clipPath id="clipTankR-outer"><rect x="698" y="102" width="120" height="76" rx="8"/></clipPath>
+      </defs>
+
+      <!-- ── BACKGROUND WING SILHOUETTE ── -->
+      <ellipse cx="430" cy="170" rx="400" ry="32" fill="#0d1e3a" opacity="0.7"/>
+      <text x="430" y="22" text-anchor="middle" fill="rgba(123,168,201,0.4)" font-family="Barlow Condensed" font-size="13" letter-spacing="3">SCHEMA SISTEMA CARBURANTE — VISTA DALL'ALTO</text>
+
+      <!-- ══════ TANKS ══════ -->
+
+      <!-- LEFT OUTER TANK -->
+      <rect id="tankLO" x="42" y="102" width="120" height="76" rx="8" fill="url(#tankGrad)" stroke="#1e4a80" stroke-width="1.5"/>
+      <rect class="fuel-level" id="fuelLO" x="42" y="138" width="120" height="40" rx="0" fill="url(#fuelFill)" clip-path="url(#clipTankL-outer)" opacity="0.85"/>
+      <text x="102" y="132" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="10" letter-spacing="1">OUTER L</text>
+      <text x="102" y="168" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="13" font-weight="700">24.000 L</text>
+
+      <!-- LEFT INNER TANK -->
+      <rect id="tankLI" x="192" y="112" width="90" height="56" rx="6" fill="url(#tankGrad)" stroke="#1e4a80" stroke-width="1.5"/>
+      <rect class="fuel-level" id="fuelLI" x="192" y="135" width="90" height="33" rx="0" fill="url(#fuelFill)" clip-path="url(#clipTankL-inner)" opacity="0.9"/>
+      <text x="237" y="130" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="10" letter-spacing="1">INNER L</text>
+      <text x="237" y="158" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="12" font-weight="700">45.000 L</text>
+
+      <!-- CENTER TANK -->
+      <rect id="tankC" x="355" y="107" width="150" height="66" rx="8" fill="url(#tankGrad)" stroke="#1e4a80" stroke-width="2"/>
+      <rect class="fuel-level" id="fuelC" x="355" y="140" width="150" height="33" rx="0" fill="url(#fuelFill)" clip-path="url(#clipTankC)" opacity="0.75"/>
+      <text x="430" y="126" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="10" letter-spacing="2">CENTER TANK</text>
+      <text x="430" y="163" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="13" font-weight="700">70.000 L</text>
+
+      <!-- RIGHT INNER TANK -->
+      <rect id="tankRI" x="578" y="112" width="90" height="56" rx="6" fill="url(#tankGrad)" stroke="#1e4a80" stroke-width="1.5"/>
+      <rect class="fuel-level" id="fuelRI" x="578" y="135" width="90" height="33" rx="0" fill="url(#fuelFill)" clip-path="url(#clipTankR-inner)" opacity="0.9"/>
+      <text x="623" y="130" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="10" letter-spacing="1">INNER R</text>
+      <text x="623" y="158" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="12" font-weight="700">45.000 L</text>
+
+      <!-- RIGHT OUTER TANK -->
+      <rect id="tankRO" x="698" y="102" width="120" height="76" rx="8" fill="url(#tankGrad)" stroke="#1e4a80" stroke-width="1.5"/>
+      <rect class="fuel-level" id="fuelRO" x="698" y="138" width="120" height="40" rx="0" fill="url(#fuelFill)" clip-path="url(#clipTankR-outer)" opacity="0.85"/>
+      <text x="758" y="132" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="10" letter-spacing="1">OUTER R</text>
+      <text x="758" y="168" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="13" font-weight="700">24.000 L</text>
+
+      <!-- ══════ PIPES ══════ -->
+
+      <!-- Main crossfeed manifold (horizontal bar) -->
+      <rect id="manifold" x="170" y="195" width="520" height="8" rx="4" fill="#0d2a50" stroke="#1e4a80" stroke-width="1"/>
+
+      <!-- LEFT OUTER → INNER pipe -->
+      <path id="pipeLoLi" d="M162,145 L192,145" stroke="#1e4a80" stroke-width="4" stroke-linecap="round"/>
+      <!-- LEFT INNER → MANIFOLD pipe -->
+      <path id="pipeLiM" d="M237,168 L237,199" stroke="#1e4a80" stroke-width="4" stroke-linecap="round"/>
+      <!-- RIGHT INNER → MANIFOLD pipe -->
+      <path id="pipeRiM" d="M623,168 L623,199" stroke="#1e4a80" stroke-width="4" stroke-linecap="round"/>
+      <!-- RIGHT OUTER → INNER pipe -->
+      <path id="pipeRoRi" d="M668,145 L698,145" stroke="#1e4a80" stroke-width="4" stroke-linecap="round"/>
+      <!-- CENTER → MANIFOLD pipe -->
+      <path id="pipeCM" d="M430,173 L430,199" stroke="#1e4a80" stroke-width="4" stroke-linecap="round"/>
+
+      <!-- LEFT ENGINE pipe (manifold → engine) -->
+      <path id="pipeME1" d="M280,199 L280,285 L230,285" stroke="#1e4a80" stroke-width="5" stroke-linecap="round"/>
+      <!-- RIGHT ENGINE pipe (manifold → engine) -->
+      <path id="pipeME2" d="M580,199 L580,285 L630,285" stroke="#1e4a80" stroke-width="5" stroke-linecap="round"/>
+
+      <!-- ══════ FLOW PARTICLES ══════ -->
+
+      <!-- Particles: LEFT INNER → manifold (normal) -->
+      <g id="flowLI" opacity="1">
+        <circle r="4" fill="#00B4FF" filter="url(#blueGlow)" opacity="0.9">
+          <animateMotion dur="1.2s" repeatCount="indefinite" begin="0s">
+            <mpath href="#pathLiM"/>
+          </animateMotion>
+        </circle>
+        <circle r="3" fill="#00B4FF" opacity="0.6">
+          <animateMotion dur="1.2s" repeatCount="indefinite" begin="0.4s">
+            <mpath href="#pathLiM"/>
+          </animateMotion>
+        </circle>
+        <circle r="3" fill="#00B4FF" opacity="0.6">
+          <animateMotion dur="1.2s" repeatCount="indefinite" begin="0.8s">
+            <mpath href="#pathLiM"/>
+          </animateMotion>
+        </circle>
+      </g>
+
+      <!-- Particles: RIGHT INNER → manifold (normal) -->
+      <g id="flowRI" opacity="1">
+        <circle r="4" fill="#00B4FF" filter="url(#blueGlow)" opacity="0.9">
+          <animateMotion dur="1.2s" repeatCount="indefinite" begin="0.2s">
+            <mpath href="#pathRiM"/>
+          </animateMotion>
+        </circle>
+        <circle r="3" fill="#00B4FF" opacity="0.6">
+          <animateMotion dur="1.2s" repeatCount="indefinite" begin="0.6s">
+            <mpath href="#pathRiM"/>
+          </animateMotion>
+        </circle>
+        <circle r="3" fill="#00B4FF" opacity="0.6">
+          <animateMotion dur="1.2s" repeatCount="indefinite" begin="1.0s">
+            <mpath href="#pathRiM"/>
+          </animateMotion>
+        </circle>
+      </g>
+
+      <!-- Particles: CENTER → manifold -->
+      <g id="flowC" opacity="0.5">
+        <circle r="3.5" fill="#00B4FF" filter="url(#blueGlow)" opacity="0.7">
+          <animateMotion dur="1.5s" repeatCount="indefinite" begin="0.1s">
+            <mpath href="#pathCM"/>
+          </animateMotion>
+        </circle>
+        <circle r="2.5" fill="#00B4FF" opacity="0.5">
+          <animateMotion dur="1.5s" repeatCount="indefinite" begin="0.75s">
+            <mpath href="#pathCM"/>
+          </animateMotion>
+        </circle>
+      </g>
+
+      <!-- Particles: manifold → ENGINE 1 -->
+      <g id="flowE1" opacity="1">
+        <circle r="5" fill="#00E5A0" filter="url(#greenGlow)" opacity="0.95">
+          <animateMotion dur="1.0s" repeatCount="indefinite" begin="0s">
+            <mpath href="#pathME1"/>
+          </animateMotion>
+        </circle>
+        <circle r="3.5" fill="#00E5A0" opacity="0.7">
+          <animateMotion dur="1.0s" repeatCount="indefinite" begin="0.33s">
+            <mpath href="#pathME1"/>
+          </animateMotion>
+        </circle>
+        <circle r="3.5" fill="#00E5A0" opacity="0.7">
+          <animateMotion dur="1.0s" repeatCount="indefinite" begin="0.66s">
+            <mpath href="#pathME1"/>
+          </animateMotion>
+        </circle>
+      </g>
+
+      <!-- Particles: manifold → ENGINE 2 -->
+      <g id="flowE2" opacity="1">
+        <circle r="5" fill="#00E5A0" filter="url(#greenGlow)" opacity="0.95">
+          <animateMotion dur="1.0s" repeatCount="indefinite" begin="0.15s">
+            <mpath href="#pathME2"/>
+          </animateMotion>
+        </circle>
+        <circle r="3.5" fill="#00E5A0" opacity="0.7">
+          <animateMotion dur="1.0s" repeatCount="indefinite" begin="0.48s">
+            <mpath href="#pathME2"/>
+          </animateMotion>
+        </circle>
+        <circle r="3.5" fill="#00E5A0" opacity="0.7">
+          <animateMotion dur="1.0s" repeatCount="indefinite" begin="0.81s">
+            <mpath href="#pathME2"/>
+          </animateMotion>
+        </circle>
+      </g>
+
+      <!-- Particles: OUTER LEFT → INNER pipe -->
+      <g id="flowLO" opacity="0.6">
+        <circle r="3" fill="#00B4FF" opacity="0.7">
+          <animateMotion dur="1.8s" repeatCount="indefinite" begin="0s">
+            <mpath href="#pathLoLi"/>
+          </animateMotion>
+        </circle>
+        <circle r="3" fill="#00B4FF" opacity="0.5">
+          <animateMotion dur="1.8s" repeatCount="indefinite" begin="0.9s">
+            <mpath href="#pathLoLi"/>
+          </animateMotion>
+        </circle>
+      </g>
+
+      <!-- Particles: OUTER RIGHT → INNER pipe -->
+      <g id="flowRO" opacity="0.6">
+        <circle r="3" fill="#00B4FF" opacity="0.7">
+          <animateMotion dur="1.8s" repeatCount="indefinite" begin="0.3s">
+            <mpath href="#pathRoRi"/>
+          </animateMotion>
+        </circle>
+        <circle r="3" fill="#00B4FF" opacity="0.5">
+          <animateMotion dur="1.8s" repeatCount="indefinite" begin="1.2s">
+            <mpath href="#pathRoRi"/>
+          </animateMotion>
+        </circle>
+      </g>
+
+      <!-- Crossfeed particles (hidden by default) -->
+      <g id="flowCross" opacity="0">
+        <circle r="4" fill="#FFD23F" filter="url(#blueGlow)" opacity="0.9">
+          <animateMotion dur="1.4s" repeatCount="indefinite" begin="0s">
+            <mpath href="#pathCross"/>
+          </animateMotion>
+        </circle>
+        <circle r="3" fill="#FFD23F" opacity="0.6">
+          <animateMotion dur="1.4s" repeatCount="indefinite" begin="0.47s">
+            <mpath href="#pathCross"/>
+          </animateMotion>
+        </circle>
+        <circle r="3" fill="#FFD23F" opacity="0.6">
+          <animateMotion dur="1.4s" repeatCount="indefinite" begin="0.94s">
+            <mpath href="#pathCross"/>
+          </animateMotion>
+        </circle>
+      </g>
+
+      <!-- Refuel particles (hidden by default) -->
+      <g id="flowRefuel" opacity="0">
+        <circle r="4" fill="#00E5A0" opacity="0.9">
+          <animateMotion dur="2.0s" repeatCount="indefinite" begin="0s">
+            <mpath href="#pathRefuelL"/>
+          </animateMotion>
+        </circle>
+        <circle r="4" fill="#00E5A0" opacity="0.9">
+          <animateMotion dur="2.0s" repeatCount="indefinite" begin="0s">
+            <mpath href="#pathRefuelR"/>
+          </animateMotion>
+        </circle>
+        <circle r="3" fill="#00E5A0" opacity="0.6">
+          <animateMotion dur="2.0s" repeatCount="indefinite" begin="0.67s">
+            <mpath href="#pathRefuelL"/>
+          </animateMotion>
+        </circle>
+        <circle r="3" fill="#00E5A0" opacity="0.6">
+          <animateMotion dur="2.0s" repeatCount="indefinite" begin="0.67s">
+            <mpath href="#pathRefuelR"/>
+          </animateMotion>
+        </circle>
+      </g>
+
+      <!-- ══════ ANIMATION PATHS (invisible) ══════ -->
+      <path id="pathLiM" d="M237,168 L237,199" fill="none"/>
+      <path id="pathRiM" d="M623,168 L623,199" fill="none"/>
+      <path id="pathCM"  d="M430,173 L430,199" fill="none"/>
+      <path id="pathME1" d="M280,199 L280,285 L230,285" fill="none"/>
+      <path id="pathME2" d="M580,199 L580,285 L630,285" fill="none"/>
+      <path id="pathLoLi" d="M162,145 L192,145" fill="none"/>
+      <path id="pathRoRi" d="M698,145 L668,145" fill="none"/>
+      <path id="pathCross" d="M237,199 L623,199" fill="none"/>
+      <path id="pathRefuelL" d="M430,380 L430,199 L237,199 L237,168" fill="none"/>
+      <path id="pathRefuelR" d="M430,380 L430,199 L623,199 L623,168" fill="none"/>
+
+      <!-- ══════ VALVES ══════ -->
+
+      <!-- Crossfeed valve -->
+      <g id="valveCross" transform="translate(430,199)">
+        <circle r="10" fill="#0d1e3a" stroke="#00B4FF" stroke-width="2"/>
+        <text y="4" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="10" font-weight="700">CF</text>
+      </g>
+
+      <!-- Shut-off valve E1 -->
+      <g id="valveE1" transform="translate(280,242)">
+        <circle r="9" fill="#0d1e3a" stroke="#00E5A0" stroke-width="2"/>
+        <text y="4" text-anchor="middle" fill="#00E5A0" font-family="Barlow Condensed" font-size="9" font-weight="700">SO</text>
+      </g>
+
+      <!-- Shut-off valve E2 -->
+      <g id="valveE2" transform="translate(580,242)">
+        <circle r="9" fill="#0d1e3a" stroke="#00E5A0" stroke-width="2"/>
+        <text y="4" text-anchor="middle" fill="#00E5A0" font-family="Barlow Condensed" font-size="9" font-weight="700">SO</text>
+      </g>
+
+      <!-- ══════ ENGINES ══════ -->
+
+      <!-- Engine 1 (LEFT) -->
+      <g id="engine1">
+        <rect x="170" y="270" width="120" height="50" rx="10" fill="url(#engineGrad)" stroke="#00E5A0" stroke-width="1.5"/>
+        <text x="230" y="291" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="9" letter-spacing="1">MOTORE 1</text>
+        <text x="230" y="308" text-anchor="middle" fill="#00E5A0" font-family="Barlow Condensed" font-size="12" font-weight="700">CFM56</text>
+        <!-- Exhaust flame -->
+        <ellipse id="flame1" cx="170" cy="295" rx="10" ry="6" fill="#FF6B35" opacity="0.8">
+          <animate attributeName="rx" values="10;14;9;12;10" dur="0.4s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.8;1;0.6;0.9;0.8" dur="0.4s" repeatCount="indefinite"/>
+        </ellipse>
+        <ellipse cx="170" cy="295" rx="6" ry="3.5" fill="#FFD23F" opacity="0.9">
+          <animate attributeName="rx" values="6;9;5;8;6" dur="0.4s" repeatCount="indefinite"/>
+        </ellipse>
+      </g>
+
+      <!-- Engine 2 (RIGHT) -->
+      <g id="engine2">
+        <rect x="570" y="270" width="120" height="50" rx="10" fill="url(#engineGrad)" stroke="#00E5A0" stroke-width="1.5"/>
+        <text x="630" y="291" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="9" letter-spacing="1">MOTORE 2</text>
+        <text x="630" y="308" text-anchor="middle" fill="#00E5A0" font-family="Barlow Condensed" font-size="12" font-weight="700">CFM56</text>
+        <!-- Exhaust flame -->
+        <ellipse id="flame2" cx="690" cy="295" rx="10" ry="6" fill="#FF6B35" opacity="0.8">
+          <animate attributeName="rx" values="10;13;8;11;10" dur="0.37s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.8;1;0.6;0.9;0.8" dur="0.37s" repeatCount="indefinite"/>
+        </ellipse>
+        <ellipse cx="690" cy="295" rx="6" ry="3.5" fill="#FFD23F" opacity="0.9">
+          <animate attributeName="rx" values="6;8;5;7;6" dur="0.37s" repeatCount="indefinite"/>
+        </ellipse>
+      </g>
+
+      <!-- EMERGENCY X overlay (hidden by default) -->
+      <g id="emergencyX" opacity="0">
+        <line x1="572" y1="262" x2="688" y2="328" stroke="#FF4444" stroke-width="4" stroke-linecap="round"/>
+        <line x1="688" y1="262" x2="572" y2="328" stroke="#FF4444" stroke-width="4" stroke-linecap="round"/>
+        <text x="630" y="345" text-anchor="middle" fill="#FF4444" font-family="Barlow Condensed" font-size="11" font-weight="700" letter-spacing="1">SHUT-OFF</text>
+      </g>
+
+      <!-- REFUEL PORT (hidden by default) -->
+      <g id="refuelPort" opacity="0">
+        <rect x="380" y="360" width="100" height="30" rx="8" fill="rgba(0,229,160,0.15)" stroke="#00E5A0" stroke-width="1.5"/>
+        <text x="430" y="380" text-anchor="middle" fill="#00E5A0" font-family="Barlow Condensed" font-size="11" font-weight="700" letter-spacing="1">⛽ PORTA RIFORN.</text>
+        <line x1="430" y1="360" x2="430" y2="345" stroke="#00E5A0" stroke-width="2" stroke-dasharray="4,3"/>
+      </g>
+
+      <!-- ══════ LEGEND ══════ -->
+      <g transform="translate(30,370)">
+        <circle cx="8" cy="8" r="5" fill="#00B4FF"/>
+        <text x="18" y="13" fill="#7BA8C9" font-family="Barlow Condensed" font-size="11">Flusso LP (Low Pressure)</text>
+        <circle cx="160" cy="8" r="5" fill="#00E5A0"/>
+        <text x="170" y="13" fill="#7BA8C9" font-family="Barlow Condensed" font-size="11">Flusso HP (High Pressure)</text>
+        <circle cx="320" cy="8" r="5" fill="#FFD23F"/>
+        <text x="330" y="13" fill="#7BA8C9" font-family="Barlow Condensed" font-size="11">Crossfeed</text>
+        <circle cx="410" cy="8" r="5" fill="#FF6B35"/>
+        <text x="420" y="13" fill="#7BA8C9" font-family="Barlow Condensed" font-size="11">Exhaust / Emergenza</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- Component labels below -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:16px;">
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:12px 16px;text-align:center;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;">Serbatoi</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:var(--accent);">5 × Wet Wing</div>
+    </div>
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:12px 16px;text-align:center;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;">Valvole</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:var(--accent);">Crossfeed + SO</div>
+    </div>
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:12px 16px;text-align:center;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;">Capacità Totale</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:var(--accent);">208.000 L</div>
+    </div>
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:12px 16px;text-align:center;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;">Pressione LP</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:var(--accent);">1–5 bar</div>
+    </div>
+  </div>
+</div>
+
+<style>
+.flow-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 100px;
+  color: var(--text-muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 9px 20px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+.flow-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.active-btn {
+  background: rgba(0,180,255,0.15);
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+</style>
+
+<script>
+(function() {
+  const modes = {
+    normal: {
+      status: 'Modalità: Volo Normale — doppia alimentazione da serbatoi interni',
+      statusColor: '#00B4FF',
+      show: ['flowLI','flowRI','flowLO','flowRO','flowE1','flowE2'],
+      hide: ['flowC','flowCross','flowRefuel','emergencyX','refuelPort'],
+      pipes: {
+        pipeLiM: '#00B4FF', pipeRiM: '#00B4FF',
+        pipeME1: '#00E5A0', pipeME2: '#00E5A0',
+        pipeLoLi: '#1e4a80', pipeRoRi: '#1e4a80',
+        pipeCM: '#0d1e3a', manifold: '#0d2a50'
+      },
+      engines: { e1: '#00E5A0', e2: '#00E5A0' },
+      crossValve: '#00B4FF',
+      tanks: { fuelC: 0.3 }
+    },
+    crossfeed: {
+      status: 'Crossfeed APERTO — il serbatoio sinistro alimenta entrambi i motori',
+      statusColor: '#FFD23F',
+      show: ['flowLI','flowLO','flowCross','flowE1','flowE2'],
+      hide: ['flowRI','flowRO','flowC','flowRefuel','emergencyX','refuelPort'],
+      pipes: {
+        pipeLiM: '#00B4FF', pipeRiM: '#FFD23F',
+        pipeME1: '#00E5A0', pipeME2: '#FFD23F',
+        pipeLoLi: '#1e4a80', pipeRoRi: '#0d1e3a',
+        pipeCM: '#0d1e3a', manifold: '#3a2a00'
+      },
+      engines: { e1: '#00E5A0', e2: '#FFD23F' },
+      crossValve: '#FFD23F',
+      tanks: { fuelRI: 0.15, fuelRO: 0.1 }
+    },
+    emergency: {
+      status: '⚠ EMERGENZA — Motore 2 spento, shut-off valve chiusa, crossfeed in standby',
+      statusColor: '#FF6B35',
+      show: ['flowLI','flowLO','flowE1'],
+      hide: ['flowRI','flowRO','flowC','flowCross','flowRefuel','flowE2'],
+      pipes: {
+        pipeLiM: '#00B4FF', pipeRiM: '#3a0000',
+        pipeME1: '#00E5A0', pipeME2: '#3a0000',
+        pipeLoLi: '#1e4a80', pipeRoRi: '#0d1e3a',
+        pipeCM: '#0d1e3a', manifold: '#0d2a50'
+      },
+      engines: { e1: '#00E5A0', e2: '#FF4444' },
+      crossValve: '#FF4444',
+      extra: ['emergencyX']
+    },
+    refuel: {
+      status: '⛽ Rifornimento — carburante pompato dal basso verso tutti i serbatoi',
+      statusColor: '#00E5A0',
+      show: ['flowRefuel','refuelPort'],
+      hide: ['flowLI','flowRI','flowLO','flowRO','flowC','flowCross','flowE1','flowE2','emergencyX'],
+      pipes: {
+        pipeLiM: '#00E5A0', pipeRiM: '#00E5A0',
+        pipeME1: '#0d1e3a', pipeME2: '#0d1e3a',
+        pipeLoLi: '#0d1e3a', pipeRoRi: '#0d1e3a',
+        pipeCM: '#00E5A0', manifold: '#003a20'
+      },
+      engines: { e1: '#1e4a80', e2: '#1e4a80' },
+      crossValve: '#00E5A0'
+    }
+  };
+
+  function setMode(mode) {
+    const cfg = modes[mode];
+
+    // Status
+    const statusEl = document.getElementById('flow-status');
+    statusEl.textContent = cfg.status;
+    statusEl.style.color = cfg.statusColor;
+
+    // Buttons
+    document.querySelectorAll('.flow-btn').forEach(b => b.classList.remove('active-btn'));
+    document.getElementById('btn-' + mode).classList.add('active-btn');
+
+    // Show/hide flow groups
+    (cfg.show || []).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.setAttribute('opacity', '1');
+    });
+    (cfg.hide || []).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.setAttribute('opacity', '0');
+    });
+    (cfg.extra || []).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.setAttribute('opacity', '1');
+    });
+
+    // Pipe colors
+    Object.entries(cfg.pipes || {}).forEach(([id, color]) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.setAttribute('stroke', color);
+        el.style.transition = 'stroke 0.5s';
+      }
+    });
+
+    // Engine border colors
+    if (cfg.engines) {
+      const e1 = document.getElementById('engine1');
+      const e2 = document.getElementById('engine2');
+      if (e1) e1.querySelector('rect').setAttribute('stroke', cfg.engines.e1);
+      if (e2) e2.querySelector('rect').setAttribute('stroke', cfg.engines.e2);
+
+      // Flames
+      const f1 = document.getElementById('flame1');
+      const f2 = document.getElementById('flame2');
+      if (mode === 'emergency') {
+        if (f2) f2.setAttribute('fill', 'none');
+      } else if (mode === 'refuel') {
+        if (f1) f1.setAttribute('fill', 'none');
+        if (f2) f2.setAttribute('fill', 'none');
+      } else {
+        if (f1) f1.setAttribute('fill', '#FF6B35');
+        if (f2) f2.setAttribute('fill', '#FF6B35');
+      }
+    }
+
+    // Crossfeed valve color
+    if (cfg.crossValve) {
+      const cv = document.getElementById('valveCross');
+      if (cv) cv.querySelector('circle').setAttribute('stroke', cfg.crossValve);
+    }
+  }
+
+  // Expose globally
+  window.setMode = setMode;
+})();
+</script>
+
+<footer>
+  <p>Sistema Carburante Aeronautico — Infografica Interattiva &nbsp;|&nbsp; Dati tecnici da normative FAA / EASA / ICAO</p>
+  <p style="margin-top:8px;font-family:'Barlow Condensed',sans-serif;font-size:0.9rem;font-weight:600;letter-spacing:2px;color:var(--accent);text-transform:uppercase;">Matteo De Cubellis &nbsp;·&nbsp; Classe 3ACA</p>
+</footer>
+
+<!-- MODAL OVERLAY -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- MODAL DATA & JS -->
+<script>
+const modals = {
+
+  serbatoi: {
+    icon: '🛢', color: 'c-blue', tag: 'Struttura', title: 'Serbatoi Integrali (Wet Wing)',
+    subtitle: 'Il cuore della capacità energetica del velivolo',
+    html: `
+      <h3>Definizione</h3>
+      <p>Un serbatoio carburante aeronautico è un contenitore progettato per immagazzinare il combustibile necessario alla propulsione, garantendo alimentazione continua, sicura e controllata in ogni fase del volo e in qualsiasi assetto del velivolo.</p>
+
+      <h3>Tipologie di Serbatoi</h3>
+      <ul>
+        <li><strong>Serbatoi Rigidi:</strong> costruiti separatamente e installati nella struttura. Vantaggi: facile manutenzione, buona resistenza. Svantaggio: peso maggiore.</li>
+        <li><strong>Serbatoi Flessibili (Bladder Tank):</strong> in gomma sintetica vulcanizzata, usati in velivoli militari, elicotteri e piccoli aerei. Resistenti agli urti.</li>
+        <li><strong>Serbatoi Integrali (Wet Wing):</strong> la struttura alare stessa è impermeabilizzata e sigillata. Massima efficienza volumetrica e peso minimo.</li>
+      </ul>
+
+      <div class="svg-diagram">
+        <svg viewBox="0 0 520 180" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="wg" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#1e4a80"/>
+              <stop offset="100%" style="stop-color:#0a2050"/>
+            </linearGradient>
+            <linearGradient id="fg2" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#00B4FF;stop-opacity:0.6"/>
+              <stop offset="100%" style="stop-color:#0066aa;stop-opacity:0.4"/>
+            </linearGradient>
+          </defs>
+          <!-- Wing shape -->
+          <polygon points="30,90 490,60 490,120 30,140" fill="url(#wg)" stroke="#1e4a80" stroke-width="1.5"/>
+          <!-- Fuel sections -->
+          <polygon points="70,88 200,68 200,112 70,128" fill="url(#fg2)" stroke="#00B4FF" stroke-width="1.2" opacity="0.8"/>
+          <polygon points="210,67 330,62 330,118 210,113" fill="url(#fg2)" stroke="#00B4FF" stroke-width="1.2" opacity="0.8"/>
+          <polygon points="340,61 430,58 430,122 340,119" fill="url(#fg2)" stroke="#00B4FF" stroke-width="1.2" opacity="0.6"/>
+          <!-- Labels -->
+          <text x="135" y="100" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="12" font-weight="700">INNER TANK</text>
+          <text x="270" y="93" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="12" font-weight="700">MID TANK</text>
+          <text x="385" y="93" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="11" font-weight="700">OUTER</text>
+          <!-- Ribs -->
+          <line x1="200" y1="68" x2="200" y2="112" stroke="#2a5090" stroke-width="2"/>
+          <line x1="330" y1="62" x2="330" y2="118" stroke="#2a5090" stroke-width="2"/>
+          <text x="260" y="165" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="11" letter-spacing="1">SEZIONE ALARE WET WING (vista frontale)</text>
+        </svg>
+      </div>
+
+      <h3>Serbatoio di Trim</h3>
+      <p>Alcuni velivoli (es. Airbus A330) dispongono di un serbatoio di trim nella sezione di coda (tail tank). Trasferendo carburante tra i serbatoi principali e il tail tank, il sistema FMS può ottimizzare automaticamente il centro di gravità riducendo la resistenza aerodinamica (drag) dell'1–2%, con significativi risparmi di carburante su rotte lunghe.</p>
+
+      <h3>Formula: Capacità Volumetrica</h3>
+      <div class="formula-box">
+        V_totale = V_wing_left + V_wing_right + V_center + V_trim<br>
+        <br>
+        Boeing 747-400: ~183.380 L (~48.445 US gal)<br>
+        Airbus A380:    ~310.000 L (~81.900 US gal)<br>
+        Densità Jet A-1 a +15°C: ρ ≈ 0,804 kg/L → massa = V × ρ
+      </div>
+
+      <div class="example-box">
+        <div class="ex-label">✈ Esempio Applicato — Boeing 747-400</div>
+        <p>Con V = 183.380 L e ρ = 0,804 kg/L la massa di carburante max è circa <strong>147.438 kg</strong>. Il peso del combustibile rappresenta tipicamente il 35–40% del MTOW (Maximum Take-Off Weight) del velivolo, influenzando direttamente il calcolo strutturale delle ali (bending relief: il peso del carburante nelle ali riduce il momento flettente in volo).</p>
+      </div>
+
+      <h3>Impermeabilizzazione Wet Wing</h3>
+      <p>Nei serbatoi integrali l'ala è sigillata con composti polisolfurico (Thiokol PR-1422 o equivalenti). I rivetti e le giunzioni sono sigillati su entrambi i lati. Ogni pannello di accesso (fuel access panel) è dotato di guarnizione O-ring resistente al carburante. La tenuta viene verificata con test a pressione differenziale (leak test) durante la costruzione e la manutenzione.</p>
+    `
+  },
+
+  pompe: {
+    icon: '⚙️', color: 'c-green', tag: 'Propulsione', title: 'Pompe Carburante',
+    subtitle: 'Garantire pressione costante in ogni condizione di volo',
+    html: `
+      <h3>Funzione Critica</h3>
+      <p>Le pompe carburante devono mantenere una pressione di alimentazione positiva al motore in tutte le condizioni operative: accelerazioni, virate, cabrate, ad alta quota e in emergenza. Il mancato apporto di carburante causa il flame-out (spegnimento) del motore in pochi secondi.</p>
+
+      <h3>Tipologie di Pompe</h3>
+      <ul>
+        <li><strong>Pompe Meccaniche (Engine-Driven):</strong> azionate direttamente dall'albero motore tramite gearbox. Funzionano solo quando il motore gira. Sono le pompe principali in aerei a pistoni.</li>
+        <li><strong>Pompe Elettriche:</strong> alimentate dalla rete elettrica del velivolo. Usate come backup, durante l'avviamento motore e in emergenza.</li>
+        <li><strong>Booster Pumps (Centrifugal):</strong> immerse nel serbatoio, creano pressione positiva all'ingresso della pompa HP del motore. Prevengono cavitazione e vapour lock.</li>
+        <li><strong>Pompa HP (High-Pressure) del motore:</strong> pompa volumetrica ad ingranaggi o a pistoni assiali integrata nella turbina. Pressioni fino a 150–200 bar per l'iniezione nei combustori.</li>
+      </ul>
+
+      <div class="svg-diagram">
+        <svg viewBox="0 0 480 160" xmlns="http://www.w3.org/2000/svg">
+          <!-- Background -->
+          <!-- Serbatoio -->
+          <rect x="20" y="50" width="80" height="70" rx="8" fill="#0d2144" stroke="#1e4a80" stroke-width="1.5"/>
+          <rect x="25" y="80" width="70" height="30" rx="4" fill="#00B4FF" opacity="0.2"/>
+          <text x="60" y="75" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="11" font-weight="700">SERBATOIO</text>
+          <!-- Booster Pump -->
+          <circle cx="160" cy="100" r="25" fill="#0d1e3a" stroke="#00E5A0" stroke-width="2"/>
+          <text x="160" y="96" text-anchor="middle" fill="#00E5A0" font-family="Barlow Condensed" font-size="10" font-weight="700">BOOSTER</text>
+          <text x="160" y="108" text-anchor="middle" fill="#00E5A0" font-family="Barlow Condensed" font-size="10" font-weight="700">PUMP</text>
+          <!-- Filtro -->
+          <rect x="215" y="82" width="40" height="36" rx="6" fill="#0d1e3a" stroke="#FFD23F" stroke-width="1.5"/>
+          <text x="235" y="103" text-anchor="middle" fill="#FFD23F" font-family="Barlow Condensed" font-size="11" font-weight="700">FILTRO</text>
+          <!-- Valvola -->
+          <polygon points="280,85 310,100 280,115" fill="#0d1e3a" stroke="#FF6B35" stroke-width="1.5"/>
+          <text x="295" y="130" text-anchor="middle" fill="#FF6B35" font-family="Barlow Condensed" font-size="10">VALVE</text>
+          <!-- Motore HP -->
+          <rect x="330" y="70" width="70" height="55" rx="10" fill="#0d1e3a" stroke="#00B4FF" stroke-width="2"/>
+          <text x="365" y="93" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="11" font-weight="700">PUMP HP</text>
+          <text x="365" y="107" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="10">MOTORE</text>
+          <!-- Frecce / linee -->
+          <line x1="100" y1="100" x2="135" y2="100" stroke="#00B4FF" stroke-width="2" marker-end="url(#arr)"/>
+          <line x1="185" y1="100" x2="215" y2="100" stroke="#00B4FF" stroke-width="2"/>
+          <line x1="255" y1="100" x2="280" y2="100" stroke="#00B4FF" stroke-width="2"/>
+          <line x1="310" y1="100" x2="330" y2="100" stroke="#00B4FF" stroke-width="2"/>
+          <!-- Pressione labels -->
+          <text x="155" y="145" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="10">~3-5 bar</text>
+          <text x="365" y="145" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="10">150-200 bar</text>
+          <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="#00B4FF" stroke-width="1"/></marker></defs>
+        </svg>
+      </div>
+
+      <h3>Principio di Funzionamento della Booster Pump</h3>
+      <div class="formula-box">
+        Pressione richiesta all'ingresso pompa HP:  P_in ≥ P_vapore + ΔP_perdite<br>
+        NPSH (Net Positive Suction Head) > NPSH_richiesto<br>
+        <br>
+        Ad alta quota: P_atm ↓ → rischio vapour lock → booster pump compensa
+      </div>
+
+      <div class="example-box">
+        <div class="ex-label">✈ Esempio — A320: Dual Booster Pump per serbatoio</div>
+        <p>L'Airbus A320 dispone di 2 booster pumps per ciascuno dei 2 wing tanks + 1 center tank. Ogni pompa eroga circa 3,5 bar di pressione differenziale. In caso di guasto di una pompa, l'altra garantisce continuità. Il sistema è configurato in modo che il motore possa essere alimentato da qualsiasi combinazione di serbatoi tramite le crossfeed valves.</p>
+      </div>
+    `
+  },
+
+  filtri: {
+    icon: '🔬', color: 'c-orange', tag: 'Sicurezza', title: 'Filtraggio e Separazione Acqua',
+    subtitle: 'Protezione di turbine, iniettori e pompe dalle contaminazioni',
+    html: `
+      <h3>Perché il Filtraggio è Critico</h3>
+      <p>Il carburante aeronautico può contenere contaminanti di varie nature: acqua libera o disciolta, polvere, ruggine, residui biologici (batteri e funghi che crescono all'interfaccia carburante-acqua), e particelle metalliche. Questi contaminanti possono causare ostruzione degli iniettori, erosione delle pale turbina, corrosione delle pompe e, soprattutto, congelamento delle linee ad alta quota.</p>
+
+      <h3>Tipi di Filtri</h3>
+      <ul>
+        <li><strong>Strainer (filtro grossolano):</strong> a maglia metallica, blocca particelle &gt; 100 µm. Primo stadio di filtraggio, solitamente nel collettore del serbatoio.</li>
+        <li><strong>Filtro a cartuccia (10–25 µm):</strong> filtra particelle fini. Elemento sostituibile in manutenzione.</li>
+        <li><strong>Separator acqua/carburante:</strong> coalescente o centrifugo. Aggrega le goccioline d'acqua in gocce più grandi che sedimentano per gravità nel water drain sump.</li>
+        <li><strong>Filtro HP (high-pressure):</strong> a monte degli iniettori, filtraggio ultra-fine &lt; 5 µm.</li>
+      </ul>
+
+      <div class="svg-diagram">
+        <svg viewBox="0 0 420 170" xmlns="http://www.w3.org/2000/svg">
+          <!-- Shell -->
+          <ellipse cx="210" cy="100" rx="160" ry="55" fill="#0d1e3a" stroke="#FF6B35" stroke-width="2"/>
+          <!-- Filter mesh -->
+          <rect x="150" y="58" width="120" height="84" rx="8" fill="#0a1628" stroke="#FF6B35" stroke-width="1.5"/>
+          <line x1="165" y1="58" x2="165" y2="142" stroke="#FF6B35" stroke-width="0.7" opacity="0.5"/>
+          <line x1="180" y1="58" x2="180" y2="142" stroke="#FF6B35" stroke-width="0.7" opacity="0.5"/>
+          <line x1="195" y1="58" x2="195" y2="142" stroke="#FF6B35" stroke-width="0.7" opacity="0.5"/>
+          <line x1="210" y1="58" x2="210" y2="142" stroke="#FF6B35" stroke-width="0.7" opacity="0.5"/>
+          <line x1="225" y1="58" x2="225" y2="142" stroke="#FF6B35" stroke-width="0.7" opacity="0.5"/>
+          <line x1="240" y1="58" x2="240" y2="142" stroke="#FF6B35" stroke-width="0.7" opacity="0.5"/>
+          <line x1="255" y1="58" x2="255" y2="142" stroke="#FF6B35" stroke-width="0.7" opacity="0.5"/>
+          <!-- Dirty side -->
+          <circle cx="90" cy="90" r="6" fill="#8B4513" opacity="0.8"/>
+          <circle cx="75" cy="110" r="4" fill="#8B4513" opacity="0.6"/>
+          <circle cx="110" cy="105" r="5" fill="#8B4513" opacity="0.7"/>
+          <circle cx="95" cy="120" r="4" fill="#0066aa" opacity="0.7"/>
+          <!-- Clean side -->
+          <text x="330" y="95" text-anchor="middle" fill="#00E5A0" font-family="Barlow Condensed" font-size="13" font-weight="700">PULITO</text>
+          <!-- Flow arrows -->
+          <text x="55" y="80" text-anchor="middle" fill="#FF6B35" font-family="Barlow Condensed" font-size="11">SPORCO</text>
+          <line x1="100" y1="95" x2="148" y2="95" stroke="#FF6B35" stroke-width="1.5"/>
+          <line x1="272" y1="95" x2="310" y2="95" stroke="#00E5A0" stroke-width="1.5"/>
+          <!-- Water sump -->
+          <ellipse cx="210" cy="148" rx="40" ry="10" fill="rgba(0,100,200,0.3)" stroke="#0066aa" stroke-width="1.2"/>
+          <text x="210" y="168" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="10">WATER DRAIN SUMP</text>
+        </svg>
+      </div>
+
+      <h3>Acqua nel Carburante: Meccanismi e Rischi</h3>
+      <p>L'acqua entra nel sistema in tre modi: per condensazione del vapore acqueo dell'aria quando il serbatoio si raffredda, per infiltrazione durante il rifornimento o la pioggia, per dissoluzione dall'umidità atmosferica. L'acqua disciolta nel Jet A-1 è circa 70 ppm a +20°C e precipita come gocce libere quando il carburante si raffredda, potendo congelare nei condotti.</p>
+
+      <div class="formula-box">
+        Temperatura di congelamento acqua in linea carburante: 0°C<br>
+        T ambiente a FL350 (~10.670 m): circa −56°C<br>
+        → Senza filtraggio, l'acqua libera forma cristalli di ghiaccio<br>
+           ostruendo filtri e iniettori in pochi minuti
+      </div>
+
+      <h3>Additivi Anti-ghiaccio</h3>
+      <p>Il FSII (Fuel System Icing Inhibitor), tipicamente il DiEGME (Diethylene Glycol Monomethyl Ether), viene aggiunto al Jet A-1 in concentrazioni di 0,10–0,15% v/v. Si dissolve nell'acqua (non nel carburante) abbassandone il punto di congelamento a circa −40°C. Negli aerei militari e in alcune applicazioni civili è già miscelato nel carburante; nelle applicazioni civili standard è opzionale.</p>
+
+      <div class="example-box">
+        <div class="ex-label">✈ Esempio — Preflight Drain Test</div>
+        <p>Prima di ogni volo il pilota (o il tecnico) preleva campioni dal drain sump di ciascun serbatoio con un apposito tester trasparente. La presenza di acqua è indicata da uno strato bluastro/biancastro sul fondo del campione. In caso positivo il drenaggio continua fino a ottenere carburante pulito e trasparente. Questo controllo è obbligatorio secondo le checklist FAA e EASA.</p>
+      </div>
+    `
+  },
+
+  valvole: {
+    icon: '🔧', color: 'c-yellow', tag: 'Controllo', title: 'Valvole di Controllo del Flusso',
+    subtitle: 'Il sistema nervoso della gestione carburante',
+    html: `
+      <h3>Funzione Generale</h3>
+      <p>Le valvole del sistema carburante regolano il flusso in direzione, portata e destinazione. Devono operare in modo affidabile in condizioni di pressione variabile, temperature estreme (da −55°C a +70°C), vibrazioni e accelerazioni. Sono solitamente azionate elettricamente (solenoid o motore elettrico) con controllo dal flight deck.</p>
+
+      <h3>Tipologie Principali</h3>
+      <ul>
+        <li><strong>Fuel Selector Valve:</strong> permette al pilota di selezionare il serbatoio da cui alimentare il motore (sinistra / destra / entrambi / OFF). Negli aerei a pistoni è spesso a controllo manuale diretto.</li>
+        <li><strong>Engine Feed Shut-off Valve (Fire Valve):</strong> blocca completamente il flusso carburante verso il motore in caso di incendio o emergenza. Azionata dal fire handle sul pannello motore. Deve chiudersi in meno di 5 secondi.</li>
+        <li><strong>Check Valve (Non-return Valve):</strong> valvola unidirezionale, impedisce ritorni indesiderati di carburante che potrebbero creare pressioni anomale o trasferire carburante nel serbatoio sbagliato.</li>
+        <li><strong>Crossfeed Valve:</strong> consente al carburante di passare da un lato dell'aereo all'altro, permettendo a un motore di essere alimentato dal serbatoio del lato opposto.</li>
+        <li><strong>Pressure Relief Valve:</strong> protegge il sistema da sovrappressione, tipicamente impostata a 3–5 psi sopra la pressione operativa.</li>
+        <li><strong>Transfer Valve:</strong> gestisce il trasferimento automatico di carburante tra serbatoi per il bilanciamento del baricentro.</li>
+      </ul>
+
+      <div class="svg-diagram">
+        <svg viewBox="0 0 480 180" xmlns="http://www.w3.org/2000/svg">
+          <!-- Left tank -->
+          <rect x="10" y="50" width="80" height="80" rx="8" fill="#0d2144" stroke="#1e4a80" stroke-width="1.5"/>
+          <text x="50" y="95" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="11" font-weight="700">TANK L</text>
+          <!-- Right tank -->
+          <rect x="390" y="50" width="80" height="80" rx="8" fill="#0d2144" stroke="#1e4a80" stroke-width="1.5"/>
+          <text x="430" y="95" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="11" font-weight="700">TANK R</text>
+          <!-- Center -->
+          <rect x="200" y="30" width="80" height="50" rx="8" fill="#0d2144" stroke="#1e4a80" stroke-width="1.5"/>
+          <text x="240" y="58" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="10" font-weight="700">CENTER</text>
+          <!-- Lines -->
+          <line x1="90" y1="90" x2="150" y2="90" stroke="#FFD23F" stroke-width="2"/>
+          <line x1="330" y1="90" x2="390" y2="90" stroke="#FFD23F" stroke-width="2"/>
+          <line x1="150" y1="90" x2="330" y2="90" stroke="#FFD23F" stroke-width="1" stroke-dasharray="5,3"/>
+          <line x1="240" y1="80" x2="240" y2="110" stroke="#FFD23F" stroke-width="1.5"/>
+          <!-- Selector L -->
+          <circle cx="150" cy="90" r="14" fill="#0d1e3a" stroke="#FFD23F" stroke-width="2"/>
+          <text x="150" y="87" text-anchor="middle" fill="#FFD23F" font-family="Barlow Condensed" font-size="9">SEL</text>
+          <text x="150" y="98" text-anchor="middle" fill="#FFD23F" font-family="Barlow Condensed" font-size="9">L</text>
+          <!-- Selector R -->
+          <circle cx="330" cy="90" r="14" fill="#0d1e3a" stroke="#FFD23F" stroke-width="2"/>
+          <text x="330" y="87" text-anchor="middle" fill="#FFD23F" font-family="Barlow Condensed" font-size="9">SEL</text>
+          <text x="330" y="98" text-anchor="middle" fill="#FFD23F" font-family="Barlow Condensed" font-size="9">R</text>
+          <!-- Crossfeed -->
+          <circle cx="240" cy="110" r="12" fill="#0d1e3a" stroke="#FF6B35" stroke-width="2"/>
+          <text x="240" y="107" text-anchor="middle" fill="#FF6B35" font-family="Barlow Condensed" font-size="8">XFEED</text>
+          <text x="240" y="118" text-anchor="middle" fill="#FF6B35" font-family="Barlow Condensed" font-size="8">VALVE</text>
+          <!-- Engines -->
+          <ellipse cx="160" cy="145" rx="30" ry="14" fill="#0a1628" stroke="#00B4FF" stroke-width="1.5"/>
+          <text x="160" y="149" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="11" font-weight="700">ENG 1</text>
+          <ellipse cx="320" cy="145" rx="30" ry="14" fill="#0a1628" stroke="#00B4FF" stroke-width="1.5"/>
+          <text x="320" y="149" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="11" font-weight="700">ENG 2</text>
+          <line x1="150" y1="104" x2="155" y2="131" stroke="#00B4FF" stroke-width="1.5"/>
+          <line x1="330" y1="104" x2="325" y2="131" stroke="#00B4FF" stroke-width="1.5"/>
+        </svg>
+      </div>
+
+      <h3>Requisiti Normativi (EASA CS-25)</h3>
+      <div class="formula-box">
+        CS 25.991: ogni motore deve poter essere isolato dalla fornitura di carburante<br>
+        CS 25.997: la shut-off valve deve essere accessibile e operabile dal flight deck<br>
+        Tempo di chiusura: ≤ 5 s (fire shut-off valve)<br>
+        Pressure drop max attraverso valvola: ≤ 0,1 bar in condizioni normali
+      </div>
+
+      <div class="example-box">
+        <div class="ex-label">✈ Esempio — Gestione Sbilanciamento Carburante A320</div>
+        <p>Se un motore consuma a ritmo diverso dall'altro, si crea un'asimmetria nei serbatoi alari (fuel imbalance). L'FQMS (Fuel Quantity Management System) dell'A320 avvisa il pilota quando la differenza supera 500 kg. Il pilota attiva la crossfeed valve e seleziona la pompa del serbatoio più pesante per alimentare entrambi i motori finché il bilanciamento è ripristinato. Il sistema può anche gestire questa operazione automaticamente in alcuni profili operativi.</p>
+      </div>
+    `
+  },
+
+  tubazioni: {
+    icon: '🔩', color: 'c-blue', tag: 'Circuito', title: 'Tubazioni e Linee Carburante',
+    subtitle: 'Resistenza strutturale e tenuta in ogni condizione',
+    html: `
+      <h3>Requisiti Progettuali</h3>
+      <p>Le tubazioni dell'impianto carburante sono componenti critici di sicurezza. Devono resistere a pressioni operative (3–200 bar a seconda della sezione), vibrazioni strutturali continue, escursioni termiche da −55°C a +150°C (vicino ai motori), carichi di accelerazione ±5g, e devono essere resistenti alla corrosione da parte del carburante, acqua e additivi chimici.</p>
+
+      <h3>Materiali Utilizzati</h3>
+      <ul>
+        <li><strong>Alluminio 2024-T3 / 6061-T6:</strong> leggero, usato nelle sezioni a bassa pressione (LP) del sistema. Resistenza a corrosione con rivestimento anodizzato.</li>
+        <li><strong>Acciaio Inossidabile 304/316:</strong> alta resistenza, usato in zone ad alta temperatura vicino ai motori e nelle linee HP. Peso maggiore dell'alluminio (~3× più pesante).</li>
+        <li><strong>Titanio Grade 5 (Ti-6Al-4V):</strong> miglior rapporto resistenza/peso, usato nei moderni velivoli di nuova generazione (A350, B787). Costo elevato.</li>
+        <li><strong>Compositi PEEK/PTFE:</strong> flessibili, chimicamente inerti, per raccordi e sezioni soggette a vibrazioni. Non conducono elettricità (bonding wire obbligatoria per evitare scariche elettrostatiche).</li>
+      </ul>
+
+      <h3>Classificazione Pressioni</h3>
+      <div class="formula-box">
+        LP (Low Pressure):   0,3 – 5 bar  → serbatoio → booster pump<br>
+        MP (Medium Pressure): 5 – 30 bar  → booster pump → HP pump inlet<br>
+        HP (High Pressure): 50 – 200 bar → HP pump → fuel control unit → injectors<br>
+        <br>
+        Margine di sicurezza (burst pressure): ≥ 4× pressione operativa (CS-25.993)
+      </div>
+
+      <h3>Raccordi e Giunzioni</h3>
+      <p>Nelle sezioni LP e MP si usano raccordi flared (AN/MS standard) o flareless (Ermeto, Coned & Threaded). Nelle sezioni HP si preferiscono raccordi imboccati tipo B-nut. Tutte le giunzioni devono superare test di tenuta a 1,5× la pressione di progetto. Il routing dei tubi deve evitare la vicinanza con cavi elettrici non schermati (rischio arco voltaico in caso di perdita).</p>
+
+      <div class="example-box">
+        <div class="ex-label">✈ Esempio — Bonding Elettrico</div>
+        <p>Il carburante che scorre nelle tubazioni genera cariche elettrostatiche per effetto triboelettrico. Senza un adeguato bonding (collegamento equipotenziale), queste cariche possono generare scintille nelle zone con vapori di carburante. Per questo ogni sezione di tubo è collegata alla struttura dell'aeromobile con apposite trecce di bonding in rame argentato, garantendo una resistenza ≤ 1 Ω tra qualsiasi punto del sistema e lo structure ground.</p>
+      </div>
+    `
+  },
+
+  ventilazione: {
+    icon: '💨', color: 'c-green', tag: 'Pressurizzazione', title: 'Sistema di Ventilazione Serbatoi',
+    subtitle: 'Equilibrio di pressione per prevenire il collasso strutturale',
+    html: `
+      <h3>Principio Fisico</h3>
+      <p>Man mano che il carburante viene consumato, il volume libero nel serbatoio aumenta. Senza ventilazione, si creerebbe una depressione interna (vuoto parziale) che potrebbe deformare o collassare le pareti del serbatoio. Allo stesso tempo, quando l'aereo sale di quota, la pressione atmosferica esterna diminuisce; senza sfogo, la pressione residua nei vapori di carburante potrebbe gonfiarsi fino alla rottura.</p>
+
+      <h3>Componenti del Sistema di Ventilazione</h3>
+      <ul>
+        <li><strong>NACA Vent Scoop:</strong> presa d'aria flush-mounted sulla parte inferiore dell'ala. Sfrutta la pressione dinamica per introdurre aria nei serbatoi durante il volo senza creare resistenza apprezzabile.</li>
+        <li><strong>Vent Lines (tubazioni di sfiato):</strong> collegano tutti i serbatoi a una vent box comune, poi all'esterno tramite NACA scoop. Permettono anche il trasferimento d'aria tra serbatoi comunicanti.</li>
+        <li><strong>Vent Box / Surge Tank:</strong> piccolo serbatoio tampone che raccoglie eventuali rigurgiti di carburante dalle vent lines durante manovre aggressive o rifornimento in eccesso. Il carburante è poi recuperato.</li>
+        <li><strong>Float Valve:</strong> valvola di livello che chiude automaticamente la vent line se il carburante raggiunge un livello critico, impedendo perdite.</li>
+        <li><strong>Pressure Relief Valve:</strong> si apre se la pressione interna supera un valore soglia (tipicamente +0,5 psi rispetto all'esterno).</li>
+      </ul>
+
+      <div class="formula-box">
+        ΔP_max ammissibile struttura serbatoio: ±0,5 psi (≈ ±0,034 bar)<br>
+        Portata min vent: Q ≥ max(Q_consumo_carburante, Q_picco_variazione_quota)<br>
+        Discesa rapida: ΔP/Δt fino a 300 ft/min → flusso aria in ingresso > 100 L/min
+      </div>
+
+      <div class="example-box">
+        <div class="ex-label">✈ Esempio — Surge Tank Airbus A320</div>
+        <p>L'A320 ha un surge tank da circa 170 L integrato nella punta alare (wing tip). In caso di rifornimento eccessivo o durante manovre, il carburante che trabocca nelle vent lines viene raccolto nel surge tank anziché essere perso. Un sensore di livello avvisa il sistema FQMS che provvede a ritrasferire il carburante verso il serbatoio alare principale tramite la vent drain valve. Questo sistema ha anche la funzione secondaria di permettere ai serbatoi di "respirare" durante i cicli termici a terra.</p>
+      </div>
+    `
+  },
+
+  sensori: {
+    icon: '📡', color: 'c-orange', tag: 'Avionica', title: 'Sensori, Indicatori e Sistemi Digitali',
+    subtitle: 'ECAM, EICAS e la gestione digitale del carburante',
+    html: `
+      <h3>Parametri Monitorati</h3>
+      <p>Il sistema di gestione carburante (FQMS – Fuel Quantity Management System) monitora in tempo reale: quantità di carburante in ogni serbatoio, portata di consumo per motore, pressione nelle linee di alimentazione, temperatura del carburante, bilanciamento laterale (fuel imbalance), status di valvole e pompe, e stima del carburante residuo all'atterraggio (FOD – Fuel On Destination).</p>
+
+      <h3>Sensori di Quantità</h3>
+      <ul>
+        <li><strong>Sonde capacitive:</strong> il metodo principale. Sfruttano la differenza di costante dielettrica tra carburante (ε≈2,1) e vapori/aria (ε=1,0). La capacitanza misurata è proporzionale al livello di carburante. Richiedono compensazione per variazioni di densità con temperatura.</li>
+        <li><strong>Densiometro ultrasonico:</strong> misura la densità del carburante in situ tramite variazione della velocità del suono. Permette di convertire il volume in massa con precisione (±0,5%).</li>
+        <li><strong>Sensori di pressione:</strong> a membrana piezoelettrica o resistiva, in ogni punto critico del circuito. Precisione ±0,1 bar.</li>
+      </ul>
+
+      <h3>Formula: Calcolo Quantità Carburante</h3>
+      <div class="formula-box">
+        Capacitanza C = ε₀ × ε_r × A / d<br>
+        ε_r(carburante) ≈ 2,1 ; ε_r(vapore) ≈ 1,0<br>
+        <br>
+        Massa carburante = Volume × ρ(T)<br>
+        ρ(T) = ρ₀ × [1 − α × (T − T₀)]<br>
+        (α ≈ 0,00085 per Jet A-1, T in °C)<br>
+        <br>
+        Stima FOD = m_attuale − (consumo_specifico × distanza_residua × peso)
+      </div>
+
+      <h3>ECAM e EICAS</h3>
+      <p>L'ECAM (Electronic Centralized Aircraft Monitor, Airbus) e l'EICAS (Engine Indicating and Crew Alerting System, Boeing) sono i sistemi di cockpit che presentano lo stato di tutti i sistemi di bordo ai piloti. La pagina FUEL dell'ECAM mostra un synoptic schematico del sistema carburante in tempo reale: serbatoi con livelli grafici, stato pompe e valvole (verde=normale, ambra=attenzione, rosso=anomalia), flussi e crossfeed.</p>
+
+      <div class="example-box">
+        <div class="ex-label">✈ Esempio — Alert FUEL IMBALANCE su A320</div>
+        <p>Quando la differenza di carburante tra il serbatoio sinistro e destro supera i 500 kg, l'ECAM genera un avviso AMBER "FUEL — L(R) WING LO LVL". Il pilota consulta la pagina FUEL, attiva la crossfeed valve e la booster pump del serbatoio più carico per alimentare il motore opposto, ribilanciando i serbatoi. Se la differenza supera 1.500 kg si attiva un avviso RED con procedura di emergenza immediata.</p>
+      </div>
+    `
+  },
+
+  gravity: {
+    icon: '🔽', color: 'c-blue', tag: 'Alimentazione', title: 'Sistema Gravity Feed',
+    subtitle: 'Semplicità e affidabilità per aerei ad ala alta e piccoli velivoli',
+    html: `
+      <h3>Principio di Funzionamento</h3>
+      <p>Il sistema Gravity Feed sfrutta la forza di gravità per far scorrere il carburante dal serbatoio (posizionato più in alto) verso il motore (posizionato più in basso). Non richiede pompe elettriche nella linea principale, il che lo rende estremamente semplice e affidabile. È il sistema usato nella maggior parte dei piccoli aerei monomotore ad ala alta (es. Cessna 172).</p>
+
+      <h3>Condizioni Necessarie</h3>
+      <ul>
+        <li>Il serbatoio deve essere posizionato superiormente rispetto al carburatore/iniettore del motore (differenza di quota H &gt; 0).</li>
+        <li>La pressione statica del carburante deve essere sufficiente a vincere le perdite di carico nelle tubazioni e nei filtri.</li>
+        <li>Il sistema non funziona in assetti nose-up molto pronunciati (rischio di interruzione del flusso se il serbatoio si svuota dalla parte superiore).</li>
+      </ul>
+
+      <div class="svg-diagram">
+        <svg viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg">
+          <!-- Wing -->
+          <polygon points="60,50 360,50 380,70 40,70" fill="#1e4a80" opacity="0.8" stroke="#2a5090" stroke-width="1"/>
+          <!-- Tank -->
+          <rect x="100" y="52" width="220" height="14" rx="4" fill="rgba(0,180,255,0.3)" stroke="#00B4FF" stroke-width="1"/>
+          <text x="210" y="63" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="11" font-weight="700">SERBATOIO</text>
+          <!-- Fuselage -->
+          <ellipse cx="210" cy="110" rx="60" ry="20" fill="#0d2144" stroke="#1e4a80" stroke-width="1.5"/>
+          <!-- Engine -->
+          <circle cx="210" cy="155" r="22" fill="#0d1e3a" stroke="#00B4FF" stroke-width="2"/>
+          <text x="210" y="151" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="10" font-weight="700">MOTORE</text>
+          <text x="210" y="163" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="9">CARB</text>
+          <!-- Flow line -->
+          <line x1="210" y1="66" x2="210" y2="133" stroke="#00B4FF" stroke-width="3" stroke-dasharray="0"/>
+          <!-- Gravity arrow -->
+          <polygon points="205,120 215,120 210,133" fill="#00B4FF"/>
+          <!-- H label -->
+          <line x1="250" y1="60" x2="250" y2="133" stroke="#7BA8C9" stroke-width="1" stroke-dasharray="4,2"/>
+          <text x="265" y="100" fill="#7BA8C9" font-family="Barlow Condensed" font-size="12">H ≈ 50 cm</text>
+          <!-- Selector -->
+          <circle cx="210" cy="100" r="8" fill="#0d1e3a" stroke="#FFD23F" stroke-width="1.5"/>
+          <text x="210" y="103" text-anchor="middle" fill="#FFD23F" font-family="Barlow Condensed" font-size="8">SEL</text>
+          <!-- Labels -->
+          <text x="210" y="193" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="10">Cessna 172 — Gravity Feed tipico</text>
+        </svg>
+      </div>
+
+      <h3>Formula: Pressione Statica Gravitazionale</h3>
+      <div class="formula-box">
+        P_stattica = ρ × g × H<br>
+        <br>
+        ρ(Jet A-1) ≈ 804 kg/m³  |  g = 9,81 m/s²<br>
+        H = dislivello serbatoio-carburatore [m]<br>
+        <br>
+        Esempio: H = 0,5 m → P = 804 × 9,81 × 0,5 ≈ 3.944 Pa ≈ 0,039 bar
+      </div>
+
+      <div class="example-box">
+        <div class="ex-label">✈ Esempio — Cessna 172 Skyhawk</div>
+        <p>Il Cessna 172 ha due serbatoi alari da 90 L ciascuno (totale 180 L), posizionati sopra il motore Lycoming IO-360. La Fuel Selector Valve a 3 posizioni (LEFT / RIGHT / BOTH) permette al pilota di scegliere il serbatoio. Procedura standard: usare BOTH durante decollo e atterraggio per avere massima affidabilità; alternare LEFT/RIGHT in crociera per bilanciare il peso (max imbalance: 11 kg). La pressione gravitazionale è di circa 0,04 bar, sufficiente per il carburatore a bassa quota.</p>
+      </div>
+    `
+  },
+
+  pump: {
+    icon: '🚀', color: 'c-green', tag: 'Alta Prestazione', title: 'Sistema Pump Feed',
+    subtitle: 'Alimentazione forzata per jet e velivoli ad alte prestazioni',
+    html: `
+      <h3>Perché le Pompe sono Indispensabili nei Jet</h3>
+      <p>Nei velivoli a turbina, i serbatoi sono spesso posizionati all'interno delle ali (inferiori rispetto al motore in ala bassa) o sono comunque troppo distanti per usare la gravità. Inoltre, ad alta quota (FL350–400), la pressione atmosferica scende a circa 0,23 bar: se il carburante non fosse pressurizzato dalla booster pump, evaporerebbe nelle tubazioni (vapour lock) prima di raggiungere la pompa HP del motore.</p>
+
+      <h3>Schema di Alimentazione a Cascata (Multi-Stage)</h3>
+      <ul>
+        <li><strong>Stage 1 — Booster Pump (centrifugal, immersed):</strong> Nel serbatoio, fornisce 3–5 bar all'uscita. Evita cavitazione nella fase successiva.</li>
+        <li><strong>Stage 2 — Low-Pressure Pump (engine-driven):</strong> Prima del fuel control unit, mantiene pressione stabile nonostante variazioni di portata.</li>
+        <li><strong>Stage 3 — High-Pressure Pump (axial-piston, engine-driven):</strong> Porta la pressione a 150–200 bar per l'atomizzazione negli iniettori del combustore. Portata proporzionale alla domanda di spinta (FCU regola bypass).</li>
+      </ul>
+
+      <div class="formula-box">
+        Portata Q = n × D × η_vol [L/min]<br>
+        (n = giri/min, D = cilindrata unitaria, η = efficienza volumetrica)<br>
+        <br>
+        Consumo tipico CFM56-5B (A320): ~2.400 kg/h per motore<br>
+        a ρ = 0,804 kg/L → Q ≈ 2.986 L/h ≈ 50 L/min per motore
+      </div>
+
+      <h3>Ridondanza del Sistema</h3>
+      <p>Il sistema pump feed è progettato con ridondanza multipla. Ogni serbatoio ha tipicamente 2 booster pumps (one in use, one standby). In caso di guasto della pompa principale del motore, una Electric Standby Pump (ESP) entra automaticamente in servizio. I sistemi di controllo FQMS monitorano le pressioni e attivano avvisi di LOW PRESSURE prima che il motore raggiunga la soglia critica.</p>
+
+      <div class="example-box">
+        <div class="ex-label">✈ Esempio — Avviamento Motore A320</div>
+        <p>Durante la procedura di avviamento dell'A320 sul terreno, la pompa meccanica del motore non è ancora attiva (il motore è fermo). Il pilota attiva le booster pumps elettriche prima di aprire la start valve. Solo con le booster pumps che forniscono carburante a sufficiente pressione il motore può essere avviato. Una volta che il motore raggiunge circa il 20% N2 (velocità del compressore), la pompa HP meccanica entra in funzione e le booster pumps rimangono attive come backup.</p>
+      </div>
+    `
+  },
+
+  crossfeed: {
+    icon: '↔️', color: 'c-orange', tag: 'Ridondanza', title: 'Crossfeed e Gestione del Baricentro',
+    subtitle: 'Flessibilità operativa e sicurezza nei velivoli multimotore',
+    html: `
+      <h3>Definizione di Crossfeed</h3>
+      <p>Il sistema crossfeed (alimentazione incrociata) consente di dirigere il carburante da un serbatoio di un lato del velivolo verso il motore del lato opposto (o ad altri motori). Questa funzionalità è essenziale per garantire il proseguimento del volo in caso di guasto di una pompa o di un serbatoio, e per il bilanciamento laterale del carburante.</p>
+
+      <h3>Utilizzi del Crossfeed</h3>
+      <ul>
+        <li><strong>Emergenza motore:</strong> se un motore si guasta, il suo serbatoio associato smette di essere consumato. Il crossfeed permette di usare quel carburante per il motore funzionante, massimizzando l'autonomia.</li>
+        <li><strong>Fuel imbalance:</strong> se i serbatoi si sbilanciano (es. un motore consuma più dell'altro), il crossfeed riequilibra i livelli, mantenendo il centro di gravità laterale entro limiti accettabili.</li>
+        <li><strong>Ottimizzazione del CG:</strong> alcuni jet dispongono di serbatoi di trim; il carburante viene trasferito automaticamente per mantenere il CG nella posizione ottimale (minimo drag).</li>
+      </ul>
+
+      <h3>Gestione del Centro di Gravità (CG)</h3>
+      <p>Il CG del velivolo influenza la stabilità e il trim. Un CG troppo arretrato rende il velivolo instabile (rischio stallo); troppo avanzato aumenta la resistenza (più combustibile consumato). Il peso del carburante rappresenta il 35–40% del MTOW: il suo posizionamento ha un effetto significativo.</p>
+
+      <div class="formula-box">
+        CG_x = Σ(m_i × x_i) / Σm_i<br>
+        <br>
+        Dove x_i = posizione longitudinale di ciascun serbatoio<br>
+        m_i = massa carburante nel serbatoio i<br>
+        <br>
+        CG envelope tipico: 15–40% MAC (Mean Aerodynamic Chord)<br>
+        Ottimale per efficienza: ~30–35% MAC
+      </div>
+
+      <div class="example-box">
+        <div class="ex-label">✈ Esempio — A330 Tail Tank Transfer</div>
+        <p>L'Airbus A330 utilizza un serbatoio di trim nella sezione posteriore (tail tank, ~6.000 L). Il sistema automatico CG management trasferisce carburante dal center tank al tail tank durante la salita in crociera, spostando il CG verso il 34–36% MAC, riducendo il trim aerodinamico necessario e abbassando il consumo dello 0,5–1%. Al termine della discesa, il carburante viene ritrasferito in avanti per garantire il corretto CG per l'atterraggio.</p>
+      </div>
+    `
+  },
+
+  inertizzazione: {
+    icon: '🛡️', color: 'c-blue', tag: 'Sicurezza', title: 'Inertizzazione con Azoto (OBIGGS)',
+    subtitle: 'Eliminare il rischio di esplosione nei serbatoi',
+    html: `
+      <h3>Il Rischio: Ullage Flammabile</h3>
+      <p>Lo "ullage" è lo spazio gassoso sopra il carburante nel serbatoio. Questo spazio contiene vapori di idrocarburi misti ad aria (ossigeno). La miscela è potenzialmente esplosiva in un range di concentrazione di vapori (LEL–UEL: 0,6%–7,5% v/v per Jet A-1). Dopo il tragico incidente del volo TWA 800 (1996) — dove l'ullage del centro tank esplose per surriscaldamento — la FAA ha imposto sistemi di inertizzazione per le nuove certificazioni.</p>
+
+      <h3>Il Sistema OBIGGS</h3>
+      <p>OBIGGS (On-Board Inert Gas Generation System) genera azoto quasi puro direttamente a bordo dell'aereo tramite membrane a fibra cava (Hollow Fiber Membrane). L'aria compressa proveniente dai motori viene filtrata e separata: l'azoto (molecola più grande) passa attraverso la membrana, mentre l'ossigeno (molecola più piccola) viene espulso all'esterno. L'azoto così prodotto (purezza &gt;90%) viene immesso nei serbatoi.</p>
+
+      <div class="svg-diagram">
+        <svg viewBox="0 0 460 170" xmlns="http://www.w3.org/2000/svg">
+          <!-- Engine bleed -->
+          <rect x="10" y="60" width="70" height="50" rx="8" fill="#0d2144" stroke="#1e4a80" stroke-width="1.5"/>
+          <text x="45" y="88" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="10" font-weight="700">ENGINE</text>
+          <text x="45" y="100" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="10">BLEED AIR</text>
+          <!-- Air separator -->
+          <rect x="110" y="55" width="90" height="60" rx="8" fill="#0d1e3a" stroke="#00B4FF" stroke-width="2"/>
+          <text x="155" y="80" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="10" font-weight="700">HOLLOW FIBER</text>
+          <text x="155" y="92" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="10">MEMBRANE</text>
+          <text x="155" y="104" text-anchor="middle" fill="#7BA8C9" font-family="Barlow Condensed" font-size="9">ASM Separator</text>
+          <!-- O2 exhaust -->
+          <line x1="155" y1="55" x2="155" y2="30" stroke="#FF6B35" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <text x="155" y="22" text-anchor="middle" fill="#FF6B35" font-family="Barlow Condensed" font-size="11">O₂ expelled</text>
+          <!-- N2 line -->
+          <line x1="200" y1="85" x2="250" y2="85" stroke="#00E5A0" stroke-width="2"/>
+          <!-- N2 buffer -->
+          <circle cx="280" cy="85" r="20" fill="#0d1e3a" stroke="#00E5A0" stroke-width="2"/>
+          <text x="280" y="82" text-anchor="middle" fill="#00E5A0" font-family="Barlow Condensed" font-size="11" font-weight="700">N₂</text>
+          <text x="280" y="94" text-anchor="middle" fill="#00E5A0" font-family="Barlow Condensed" font-size="9">&gt;90%</text>
+          <!-- Tank -->
+          <rect x="330" y="50" width="110" height="70" rx="10" fill="#0d2144" stroke="#1e4a80" stroke-width="1.5"/>
+          <rect x="335" y="55" width="100" height="25" rx="5" fill="rgba(0,229,160,0.1)" stroke="#00E5A0" stroke-width="1"/>
+          <text x="385" y="72" text-anchor="middle" fill="#00E5A0" font-family="Barlow Condensed" font-size="10">ULLAGE N₂</text>
+          <rect x="335" y="88" width="100" height="26" rx="5" fill="rgba(0,180,255,0.2)" stroke="#00B4FF" stroke-width="1"/>
+          <text x="385" y="104" text-anchor="middle" fill="#00B4FF" font-family="Barlow Condensed" font-size="10">CARBURANTE</text>
+          <!-- Connections -->
+          <line x1="80" y1="85" x2="110" y2="85" stroke="#7BA8C9" stroke-width="1.5"/>
+          <line x1="300" y1="85" x2="330" y2="68" stroke="#00E5A0" stroke-width="1.5" stroke-dasharray="4,2"/>
+        </svg>
+      </div>
+
+      <h3>Parametri Operativi</h3>
+      <div class="formula-box">
+        LEL (Lower Explosive Limit) Jet A-1: 0,6% v/v di vapori<br>
+        UEL (Upper Explosive Limit): 7,5% v/v<br>
+        <br>
+        Obiettivo OBIGGS: [O₂] ullage &lt; 12% → miscela non infiammabile<br>
+        (LOC = Limiting Oxygen Concentration per Jet A-1 è ~11,5%)<br>
+        <br>
+        Produzione N₂ tipica: 5–15 g/s per sistema velivolo commerciale
+      </div>
+
+      <div class="example-box">
+        <div class="ex-label">✈ Esempio — Boeing 737 NG OBIGGS (post-TWA 800)</div>
+        <p>A seguito del disastro del TWA 800, la FAA ha emesso la regolamentazione 14 CFR Part 26 richiedendo l'inertizzazione del center wing tank (CWT) per i Boeing 747 e 737 in servizio. Il sistema OBIGGS del 737 NG genera azoto dall'aria compressa del motore (bleed air) e mantiene la concentrazione di ossigeno nell'ullage del CWT al di sotto del 12%. Il sistema è completamente automatico e richiede solo monitoraggio periodico dei filtri dell'ASM (Air Separation Module).</p>
+      </div>
+    `
+  },
+
+  jeta1: {
+    icon: '🌡️', color: 'c-yellow', tag: 'Carburante', title: 'Carburanti Aeronautici: Jet A-1 e AVGAS',
+    subtitle: 'Proprietà fisico-chimiche e requisiti per l\'aviazione',
+    html: `
+      <h3>Jet A-1: Il Carburante Standard dell'Aviazione</h3>
+      <p>Il Jet A-1 è un carburante derivato dalla distillazione del petrolio greggio (kerosene), con un range di distillazione tra 150°C e 300°C. È il carburante standard per l'aviazione commerciale in tutto il mondo (eccetto USA dove si usa anche Jet A con freeze point −40°C). Le sue proprietà sono definite da ASTM D1655 e DEF STAN 91-091.</p>
+
+      <table class="data-table">
+        <tr><th>Proprietà</th><th>Valore</th></tr>
+        <tr><td>Punto di congelamento</td><td>−47°C (max)</td></tr>
+        <tr><td>Flash point</td><td>≥ 38°C</td></tr>
+        <tr><td>Densità a 15°C</td><td>775–840 kg/m³</td></tr>
+        <tr><td>Viscosità a −20°C</td><td>≤ 8 mm²/s</td></tr>
+        <tr><td>Potere calorifico</td><td>~43,2 MJ/kg</td></tr>
+        <tr><td>Tensione di vapore (37,8°C)</td><td>≤ 21 kPa</td></tr>
+      </table>
+
+      <h3>Punto di Congelamento: Importanza Critica</h3>
+      <p>A −47°C le componenti a più alto punto di fusione del Jet A-1 iniziano a cristallizzare, rendendo il carburante gelatin-like. La temperatura esterna a FL350 (crociera tipica) può raggiungere −56°C, quindi il margine di −47°C garantisce che il carburante rimanga fluido, tenendo conto che il carburante nelle ali è più freddo dell'aria esterna per via dell'inerzia termica.</p>
+
+      <div class="formula-box">
+        Autonomia range = m_carburante / SFC / spinta_media × velocità<br>
+        SFC (Specific Fuel Consumption) CFM56-5B: ~17 g/kN·s<br>
+        <br>
+        Equazione di Breguet (range):
+        R = (L/D) × (v/g) × ln(m_inizio / m_fine) × (1/SFC)
+        <br>
+        Potere calorifico Jet A-1: 43,2 MJ/kg vs AVGAS: 44,7 MJ/kg
+      </div>
+
+      <h3>AVGAS 100LL</h3>
+      <p>L'AVGAS (Aviation Gasoline) 100LL è usato nei motori a pistoni aeronautici. "LL" sta per Low Lead (basso piombo). Il numero 100 si riferisce all'ottano (MON ≥ 100), necessario per resistere alla detonazione nei motori ad alta compressione. Ha colorazione blu caratteristica aggiunta per distinguerlo visivamente da altri carburanti e prevenire contaminazioni accidentali (non va MAI usato in un motore a turbina).</p>
+
+      <div class="example-box">
+        <div class="ex-label">✈ Esempio — Prevenzione Misfuelling</div>
+        <p>Il rifornimento errato (misfuelling) con AVGAS invece di Jet A-1 (o viceversa) può essere catastrofico. Il sistema di prevenzione include: pistole di rifornimento di diametro diverso (Jet A-1: ø 60 mm; AVGAS: ø 40 mm), colorazione del carburante (AVGAS = blu; Jet A-1 = incolore/paglierino), etichette obbligatorie, e procedure di ispezione pre-rifornimento. Il pilota deve sempre verificare tipo di carburante, quantità e assenza di acqua prima di ogni volo.</p>
+      </div>
+    `
+  },
+
+  saf: {
+    icon: '🌿', color: 'c-green', tag: 'Innovazione', title: 'SAF, Idrogeno e Sistemi Ibridi',
+    subtitle: 'La transizione verso l\'aviazione sostenibile',
+    html: `
+      <h3>SAF — Sustainable Aviation Fuel</h3>
+      <p>I SAF sono carburanti aeronautici prodotti da fonti rinnovabili o riciclate anziché dal petrolio fossile. Devono essere chimicamente quasi identici al Jet A-1 per essere compatibili con le attuali motorizzazioni e infrastrutture (principio "drop-in"). Le filiere di produzione certificate includono HEFA (olio idrotrattato), AtJ (alcol a jet), FT (Fischer-Tropsch da biomassa o waste), e Power-to-Liquid (eLiquid da CO₂ + H₂O + energia rinnovabile).</p>
+
+      <h3>Riduzione delle Emissioni</h3>
+      <ul>
+        <li>Riduzione CO₂ nel ciclo di vita: fino all'80% rispetto al Jet A-1 fossile.</li>
+        <li>Riduzione particolato e NOx: fino al 30–40% in alcune formulazioni.</li>
+        <li>Limite attuale di blending: max 50% SAF + 50% Jet A-1 convenzionale (per certificazione ASTM D7566).</li>
+        <li>Obiettivo UE: 2% SAF nel 2025, 6% nel 2030, 70% nel 2050 (ReFuelEU Aviation).</li>
+      </ul>
+
+      <div class="formula-box">
+        Emissioni ciclo vita SAF-HEFA: ~25–30 gCO₂eq/MJ<br>
+        Emissioni ciclo vita Jet A-1 fossile: ~88 gCO₂eq/MJ<br>
+        Riduzione: (88-25)/88 × 100 ≈ 72%<br>
+        <br>
+        SAF Power-to-Liquid (eLiquid): potenzialmente carbon-neutral<br>
+        se energia rinnovabile usata per elettrolisi H₂O → H₂ + cattura CO₂
+      </div>
+
+      <h3>Idrogeno Liquido (LH₂)</h3>
+      <p>L'idrogeno è il vettore energetico con la più alta densità energetica per unità di massa (120 MJ/kg vs 43 MJ/kg del Jet A-1), ma la densità volumetrica è molto bassa allo stato liquido (~71 kg/m³ vs ~800 kg/m³ del Jet A-1). Per questo i serbatoi criogenici (a −253°C, 20 K) devono avere volumi 4× maggiori per contenere la stessa energia. Le emissioni in volo sono solo H₂O, senza CO₂.</p>
+
+      <div class="example-box">
+        <div class="ex-label">✈ Esempio — Airbus ZEROe Concept</div>
+        <p>Airbus ha presentato nel 2020 il programma ZEROe con tre concept di aeromobile a idrogeno per il 2035: un turbofan ibrido-idrogeno per 200 pax (3.500 nm), un turboprop per 100 pax (1.800 nm), e un concept "blended wing body". Il principale sfida ingegneristica è la progettazione dei serbatoi criogenici integrati nella fusoliera (non nell'ala per motivi strutturali), e lo sviluppo di turbine adatte alla combustione dell'idrogeno (fiamma molto più calda e rapida rispetto al kerosene).</p>
+      </div>
+
+      <h3>Sistemi Ibridi-Elettrici</h3>
+      <p>Per la mobilità regionale (tratte &lt;500 km), i sistemi ibridi utilizzano batterie ad alta densità energetica (obiettivo 500 Wh/kg al 2030) in combinazione con turbogeneratori a Jet A-1 o SAF. La propulsione distribuita (DP) con più motori elettrici sulle ali permette di migliorare l'aerodinamica attraverso il Boundary Layer Ingestion (BLI), riducendo la resistenza del 10–15%.</p>
+    `
+  },
+
+  rischi: {
+    icon: '⚠️', color: 'c-orange', tag: 'Criticità', title: 'Rischi e Anomalie del Sistema Carburante',
+    subtitle: 'Vapour lock, cavitazione, contaminazione e incendio',
+    html: `
+      <h3>Vapour Lock</h3>
+      <p>Il vapour lock si verifica quando il carburante evapora parzialmente nelle tubazioni LP formando bolle di vapore che ostruiscono il flusso. Cause principali: alta temperatura (carburante vicino a fonti di calore), bassa pressione (alta quota senza pressurizzazione), carburante con alta tensione di vapore. La booster pump immersa nel serbatoio è la principale contromisura: mantiene la pressione al di sopra della tensione di vapore del carburante.</p>
+
+      <h3>Cavitazione nelle Pompe</h3>
+      <p>La cavitazione avviene quando la pressione al letto di aspirazione della pompa scende sotto la pressione di vapore del carburante, formando bolle che implodono violentemente colpendo le pale della pompa. Causa erosione meccanica, perdita di portata e rumore caratteristico. Il parametro NPSH (Net Positive Suction Head) disponibile deve sempre superare il NPSH richiesto dalla pompa.</p>
+
+      <div class="formula-box">
+        NPSH_disponibile = (P_in - P_vapore) / (ρ × g) + v²/(2g)<br>
+        <br>
+        Condizione anti-cavitazione: NPSH_d > NPSH_r (con margine ≥ 0,5 m)<br>
+        <br>
+        Segnali cavitazione: rumore (crackling), vibrazioni pompa,<br>
+        calo portata, oscillazioni pressione
+      </div>
+
+      <h3>Contaminazione del Carburante</h3>
+      <ul>
+        <li><strong>Acqua libera:</strong> congela ad alta quota, ostruisce filtri. Rilevabile visivamente nel drain test.</li>
+        <li><strong>Crescita batterica/fungina:</strong> Cladosporium resinae e Pseudomonas sono i microrganismi più comuni. Si sviluppano all'interfaccia carburante-acqua, producono biofilm che ostruisce filtri e corrode strutture. Prevenzione: additivi biocidi (Biobor JF a 270 ppm), drenaggio frequente dell'acqua.</li>
+        <li><strong>Particelle solide:</strong> ruggine, sabbia, residui metallici. Rigano iniettori e pompe. Rimozione tramite filtrazione.</li>
+        <li><strong>Cross-contamination:</strong> AVGAS in un motore a turbina può causare flame-out per incompatibilità chimica.</li>
+      </ul>
+
+      <h3>Incendio ed Esplosione</h3>
+      <p>I vapori di Jet A-1 sono infiammabili in concentrazioni 0,6–7,5% v/v (LEL-UEL). Le sorgenti di innesco possono essere scariche elettrostatiche (fulmine, accumulo statico), archi elettrici, superfici calde (zona motore &gt;250°C). Le contromisure includono: inertizzazione OBIGGS, bonding equipotenziale, distanza di sicurezza dai motori, valvole fire shut-off, fire loop detector (termocoppie Fenwal) nel motore.</p>
+
+      <div class="example-box">
+        <div class="ex-label">✈ Esempio — Procedura di Emergenza: Engine Fire</div>
+        <p>In caso di incendio motore, la checklist EMERGENCY PROCEDURE dell'A320 prevede: (1) THRUST LEVER → IDLE, (2) ENGINE MASTER → OFF (chiude fuel shut-off valve entro 3s), (3) ENG FIRE pb → push e hold 3s (scarica estintore halon), (4) se il warning persiste dopo 30s → second extinguisher. La shut-off valve interrompe il flusso di carburante privando il fuoco del combustibile. Senza questo sistema, il motore in fiamme potrebbe ricevere carburante indefinitamente.</p>
+      </div>
+
+      <h3>Certificazione e Test</h3>
+      <p>La CS-25 (EASA) e la FAR Part 25 (FAA) richiedono test di qualificazione del sistema carburante in condizioni estreme: alimentazione con serbatoio quasi vuoto in tutte le posizioni di volo (0g, +6g, −1g), funzionamento con un motore guasto e crossfeed aperto, resistenza ai fulmini (lightning strike test), test di esplosione ullage con alta voltaggio, e funzionamento dopo 24h a terra in calore (soak test a +55°C per simulare il centro tank surriscaldato).</p>
+    `
+  }
+};
+
+// SCROLL REVEAL
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), entry.target.dataset.delay || 0);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.card').forEach((card, i) => {
+  card.dataset.delay = i * 80;
+  observer.observe(card);
+});
+
+// MODAL LOGIC
+const overlay = document.getElementById('modalOverlay');
+const content = document.getElementById('modalContent');
+
+document.querySelectorAll('.card[data-modal]').forEach(card => {
+  card.addEventListener('click', () => {
+    const key = card.getAttribute('data-modal');
+    const data = modals[key];
+    if (!data) return;
+
+    content.innerHTML = `
+      <button class="modal-close" id="modalCloseBtn" aria-label="Chiudi">✕</button>
+      <div class="modal-header">
+        <div class="modal-icon ${data.color}">${data.icon}</div>
+        <div>
+          <span class="card-tag ${data.color}" style="margin-bottom:6px;display:inline-block">${data.tag}</span>
+          <h2>${data.title}</h2>
+          <p>${data.subtitle}</p>
+        </div>
+      </div>
+      <div class="modal-body">${data.html}</div>
+    `;
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    content.scrollTop = 0;
+
+    document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  });
+});
+
+overlay.addEventListener('click', e => {
+  if (e.target === overlay) closeModal();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+function closeModal() {
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+</script>
+</body>
+</html>
